@@ -1,0 +1,16 @@
+{
+  "type": "datasource",
+  "name": "SystemLink Server Alarms",
+  "id": "ni-slsalarms-datasource",
+  "metrics": true,
+  "access": "direct",
+  "info": {
+    "author": {
+      "name": "NI"
+    },
+    "logos": {
+      "small": "img/logo-ni.svg",
+      "large": "img/logo-ni.svg"
+    }
+  }
+}
