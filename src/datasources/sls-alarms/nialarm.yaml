@@ -204,6 +204,18 @@ definitions:
         description: The highest severity level that a given alarm instance has ever been in
         type: integer
         example: 4
+      mostRecentSetOccurredAt:
+        description: ISO-8601 formatted timestamp specifying when the most recent SET transition occurred
+          for this alarm instance.
+        type: string
+        format: date-time
+        example: '2019-01-14T23:15:53.7270539Z'
+      mostRecentTransitionOccurredAt:
+        description: ISO-8601 formatted timestamp specifying when the most recent transition of any type
+          occurred for this alarm instance.
+        type: string
+        format: date-time
+        example: '2019-01-14T23:15:53.7270539Z'
       channel:
         description: An identifier for the tag or resource associated with a given alarm instance
         type: string

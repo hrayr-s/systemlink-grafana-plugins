@@ -488,9 +488,9 @@ describe('ListAlarmsQueryEditor', () => {
         const propertiesCombobox = container.getAllByRole('combobox')[0];
         await userEvent.click(propertiesCombobox);
         await userEvent.clear(propertiesCombobox);
-        await userEvent.type(propertiesCombobox, 'Transition value');
+        await userEvent.type(propertiesCombobox, 'Transition type');
 
-        expect(screen.queryByText('Transition value')).toBeInTheDocument();
+        expect(screen.queryByText('Transition type')).toBeInTheDocument();
       });
     });
 
