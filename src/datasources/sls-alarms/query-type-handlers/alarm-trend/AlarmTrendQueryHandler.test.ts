@@ -26,7 +26,6 @@ const sampleAlarm: Alarm = {
       transitionType: AlarmTransitionType.Set,
       occurredAt: '2025-01-01T10:15:00.000Z',
       severityLevel: AlarmTransitionSeverityLevel.High,
-      value: 'High',
       condition: 'Temperature',
       shortText: 'Temp High',
       detailText: 'Temperature exceeded threshold',
@@ -39,7 +38,6 @@ const sampleAlarm: Alarm = {
       transitionType: AlarmTransitionType.Clear,
       occurredAt: '2025-01-01T10:45:00.000Z',
       severityLevel: AlarmTransitionSeverityLevel.Clear,
-      value: 'Normal',
       condition: 'Temperature',
       shortText: 'Temp Normal',
       detailText: 'Temperature returned to normal',
@@ -221,7 +219,6 @@ describe('AlarmTrendQueryHandler', () => {
               transitionType: AlarmTransitionType.Set,
               occurredAt: '2025-01-01T10:10:00.000Z',
               severityLevel: AlarmTransitionSeverityLevel.High,
-              value: 'High',
               condition: 'Temperature',
               shortText: 'Temp High',
               detailText: 'Temperature exceeded threshold',
@@ -232,7 +229,6 @@ describe('AlarmTrendQueryHandler', () => {
               transitionType: AlarmTransitionType.Clear,
               occurredAt: '2025-01-01T10:30:00.000Z',
               severityLevel: AlarmTransitionSeverityLevel.Clear,
-              value: 'Normal',
               condition: 'Temperature',
               shortText: 'Temp Normal',
               detailText: 'Temperature returned to normal',
@@ -243,7 +239,6 @@ describe('AlarmTrendQueryHandler', () => {
               transitionType: AlarmTransitionType.Set,
               occurredAt: '2025-01-01T10:50:00.000Z',
               severityLevel: AlarmTransitionSeverityLevel.Critical,
-              value: 'Medium',
               condition: 'Temperature',
               shortText: 'Temp Medium',
               detailText: 'Temperature above normal but below high threshold',
@@ -348,7 +343,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:10:00.000Z',
                 severityLevel: AlarmTransitionSeverityLevel.High,
-                value: '',
                 condition: '',
                 shortText: '',
                 detailText: '',
@@ -364,7 +358,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:20:00.000Z',
                 severityLevel: AlarmTransitionSeverityLevel.High,
-                value: '',
                 condition: '',
                 shortText: '',
                 detailText: '',
@@ -375,7 +368,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Clear,
                 occurredAt: '2025-01-01T10:40:00.000Z',
                 severityLevel: AlarmTransitionSeverityLevel.Low,
-                value: '',
                 condition: '',
                 shortText: '',
                 detailText: '',
@@ -423,7 +415,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:00:00.000Z', // Exactly at start
                 severityLevel: AlarmTransitionSeverityLevel.High,
-                value: 'Low',
                 condition: 'Boundary Start Set',
                 shortText: 'Set at start',
                 detailText: 'Alarm set exactly at query start time',
@@ -441,7 +432,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T09:30:00.000Z', // Before range
                 severityLevel: AlarmTransitionSeverityLevel.Moderate,
-                value: 'Moderate',
                 condition: 'Pre-range Set',
                 shortText: 'Set before range',
                 detailText: 'Alarm set before query range',
@@ -452,7 +442,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Clear,
                 occurredAt: '2025-01-01T11:00:00.000Z', // Exactly at end
                 severityLevel: AlarmTransitionSeverityLevel.Clear,
-                value: 'Clear',
                 condition: 'Boundary End Clear',
                 shortText: 'Clear at end',
                 detailText: 'Alarm cleared exactly at query end time',
@@ -470,7 +459,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T09:00:00.000Z', // Way before range
                 severityLevel: AlarmTransitionSeverityLevel.High,
-                value: 'High',
                 condition: 'Outside Creation',
                 shortText: 'Created outside',
                 detailText: 'Alarm created outside query range',
@@ -481,7 +469,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Clear,
                 occurredAt: '2025-01-01T10:30:00.000Z', // Within range
                 severityLevel: AlarmTransitionSeverityLevel.Clear,
-                value: 'Clear',
                 condition: 'Inside Clear',
                 shortText: 'Cleared inside',
                 detailText: 'Alarm cleared within query range',
@@ -492,7 +479,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:45:00.000Z', // Within range
                 severityLevel: AlarmTransitionSeverityLevel.Moderate,
-                value: 'Moderate',
                 condition: 'Inside Set',
                 shortText: 'Set inside',
                 detailText: 'Alarm set again within query range',
@@ -510,7 +496,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:15:00.000Z', // Within range
                 severityLevel: AlarmTransitionSeverityLevel.Critical,
-                value: 'Critical',
                 condition: 'Inside Creation',
                 shortText: 'Created inside',
                 detailText: 'Alarm created within query range',
@@ -521,7 +506,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Clear,
                 occurredAt: '2025-01-01T12:00:00.000Z', // After range
                 severityLevel: AlarmTransitionSeverityLevel.Clear,
-                value: 'Clear',
                 condition: 'Outside Clear',
                 shortText: 'Cleared outside',
                 detailText: 'Alarm cleared after query range',
@@ -539,7 +523,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:20:00.000Z',
                 severityLevel: AlarmTransitionSeverityLevel.Low,
-                value: 'Low',
                 condition: 'Rapid 1',
                 shortText: 'Rapid set 1',
                 detailText: 'First rapid transition',
@@ -550,7 +533,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Clear,
                 occurredAt: '2025-01-01T10:20:00.000Z', // Same timestamp
                 severityLevel: AlarmTransitionSeverityLevel.Clear,
-                value: 'Clear',
                 condition: 'Rapid Clear',
                 shortText: 'Rapid clear',
                 detailText: 'Rapid clear transition',
@@ -561,7 +543,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:20:00.000Z', // Same timestamp
                 severityLevel: AlarmTransitionSeverityLevel.High,
-                value: 'High',
                 condition: 'Rapid 2',
                 shortText: 'Rapid set 2',
                 detailText: 'Second rapid transition',
@@ -579,7 +560,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T08:00:00.000Z', // Before range
                 severityLevel: AlarmTransitionSeverityLevel.Moderate,
-                value: 'Moderate',
                 condition: 'Outside Set',
                 shortText: 'Set outside',
                 detailText: 'Set before range',
@@ -590,7 +570,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Clear,
                 occurredAt: '2025-01-01T12:30:00.000Z', // After range
                 severityLevel: AlarmTransitionSeverityLevel.Clear,
-                value: 'Clear',
                 condition: 'Outside Clear',
                 shortText: 'Clear outside',
                 detailText: 'Cleared after range',
@@ -608,7 +587,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:05:00.000Z', // Exactly at interval boundary (5min)
                 severityLevel: AlarmTransitionSeverityLevel.Low,
-                value: 'Low',
                 condition: 'Interval Boundary',
                 shortText: 'Set at interval',
                 detailText: 'Set exactly at interval boundary',
@@ -619,7 +597,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Clear,
                 occurredAt: '2025-01-01T10:35:00.000Z', // Exactly at another interval boundary
                 severityLevel: AlarmTransitionSeverityLevel.Clear,
-                value: 'Clear',
                 condition: 'Interval Boundary Clear',
                 shortText: 'Clear at interval',
                 detailText: 'Cleared exactly at interval boundary',
@@ -643,7 +620,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T11:00:00.000Z', // Exactly at end
                 severityLevel: AlarmTransitionSeverityLevel.Moderate,
-                value: 'Moderate',
                 condition: 'End Boundary',
                 shortText: 'Set at end',
                 detailText: 'Set exactly at query end',
@@ -798,7 +774,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:10:00.000Z',
                 severityLevel: AlarmTransitionSeverityLevel.Low,
-                value: 'Low',
                 condition: 'Temperature',
                 shortText: 'Temp Low',
                 detailText: 'Low temperature alert',
@@ -814,7 +789,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:15:00.000Z',
                 severityLevel: AlarmTransitionSeverityLevel.High,
-                value: 'High',
                 condition: 'Pressure',
                 shortText: 'Pressure High',
                 detailText: 'High pressure detected',
@@ -830,7 +804,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:20:00.000Z',
                 severityLevel: AlarmTransitionSeverityLevel.Critical,
-                value: 'Critical',
                 condition: 'System',
                 shortText: 'System Critical',
                 detailText: 'Critical system failure',
@@ -885,7 +858,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:10:00.000Z',
                 severityLevel: AlarmTransitionSeverityLevel.Low,
-                value: 'Low',
                 condition: 'Temperature',
                 shortText: 'Temp Low',
                 detailText: 'Low temperature alert',
@@ -896,7 +868,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:30:00.000Z',
                 severityLevel: AlarmTransitionSeverityLevel.High,
-                value: 'High',
                 condition: 'Temperature',
                 shortText: 'Temp High',
                 detailText: 'Temperature escalated to high',
@@ -907,7 +878,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Clear,
                 occurredAt: '2025-01-01T10:50:00.000Z',
                 severityLevel: AlarmTransitionSeverityLevel.Clear,
-                value: 'Clear',
                 condition: 'Temperature',
                 shortText: 'Temp Clear',
                 detailText: 'Temperature returned to normal',
@@ -943,7 +913,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:10:00.000Z',
                 severityLevel: -1, // Clear
-                value: 'Clear',
                 condition: 'Test',
                 shortText: 'Test Clear',
                 detailText: 'Test clear condition',
@@ -959,7 +928,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:15:00.000Z',
                 severityLevel: 5 as AlarmTransitionSeverityLevel,
-                value: 'Ultra Critical',
                 condition: 'System',
                 shortText: 'System Ultra Critical',
                 detailText: 'Ultra critical system failure',
@@ -1009,7 +977,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:00:00.000Z', // Exactly at start
                 severityLevel: AlarmTransitionSeverityLevel.Low,
-                value: 'Low',
                 condition: 'Boundary Start Set',
                 shortText: 'Set at start',
                 detailText: 'Alarm set exactly at query start time',
@@ -1027,7 +994,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T09:30:00.000Z', // Before range
                 severityLevel: AlarmTransitionSeverityLevel.Moderate,
-                value: 'Moderate',
                 condition: 'Pre-range Set',
                 shortText: 'Set before range',
                 detailText: 'Alarm set before query range',
@@ -1038,7 +1004,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Clear,
                 occurredAt: '2025-01-01T11:00:00.000Z', // Exactly at end
                 severityLevel: AlarmTransitionSeverityLevel.Clear,
-                value: 'Clear',
                 condition: 'Boundary End Clear',
                 shortText: 'Clear at end',
                 detailText: 'Alarm cleared exactly at query end time',
@@ -1056,7 +1021,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T09:00:00.000Z', // Way before range
                 severityLevel: AlarmTransitionSeverityLevel.High,
-                value: 'High',
                 condition: 'Escalation Test',
                 shortText: 'Created outside',
                 detailText: 'Alarm created outside query range',
@@ -1067,7 +1031,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:15:00.000Z', // Within range - escalate to Critical
                 severityLevel: AlarmTransitionSeverityLevel.Critical,
-                value: 'Critical',
                 condition: 'Escalated',
                 shortText: 'Escalated to Critical',
                 detailText: 'Alarm escalated to critical within query range',
@@ -1078,7 +1041,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:45:00.000Z', // Within range - deescalate to Moderate
                 severityLevel: AlarmTransitionSeverityLevel.Moderate,
-                value: 'Moderate',
                 condition: 'Deescalated',
                 shortText: 'Deescalated to Moderate',
                 detailText: 'Alarm deescalated to moderate within query range',
@@ -1096,7 +1058,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:05:00.000Z', // Within range
                 severityLevel: AlarmTransitionSeverityLevel.Critical,
-                value: 'Critical',
                 condition: 'Early Critical',
                 shortText: 'Critical early',
                 detailText: 'Critical alarm early in range',
@@ -1114,7 +1075,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:20:00.000Z',
                 severityLevel: AlarmTransitionSeverityLevel.Low,
-                value: 'Low',
                 condition: 'Rapid 1',
                 shortText: 'Rapid set 1',
                 detailText: 'First rapid transition',
@@ -1125,7 +1085,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:20:00.000Z', // Same timestamp - escalate to High
                 severityLevel: AlarmTransitionSeverityLevel.High,
-                value: 'High',
                 condition: 'Rapid 2',
                 shortText: 'Rapid escalation',
                 detailText: 'Rapid escalation to high',
@@ -1136,7 +1095,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Clear,
                 occurredAt: '2025-01-01T10:35:00.000Z', // Later cleared
                 severityLevel: AlarmTransitionSeverityLevel.Clear,
-                value: 'Clear',
                 condition: 'Rapid Clear',
                 shortText: 'Rapid clear',
                 detailText: 'Rapid clear transition',
@@ -1154,7 +1112,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T08:00:00.000Z', // Before range
                 severityLevel: AlarmTransitionSeverityLevel.Low,
-                value: 'Low',
                 condition: 'Spanning Low',
                 shortText: 'Set outside',
                 detailText: 'Low severity set before range',
@@ -1165,7 +1122,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Clear,
                 occurredAt: '2025-01-01T12:30:00.000Z', // After range
                 severityLevel: AlarmTransitionSeverityLevel.Clear,
-                value: 'Clear',
                 condition: 'Spanning Clear',
                 shortText: 'Clear outside',
                 detailText: 'Cleared after range',
@@ -1183,7 +1139,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:25:00.000Z', // Exactly at 25min interval boundary
                 severityLevel: AlarmTransitionSeverityLevel.High,
-                value: 'High',
                 condition: 'Interval Boundary High',
                 shortText: 'Set at interval',
                 detailText: 'High severity set exactly at interval boundary',
@@ -1201,7 +1156,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Clear,
                 occurredAt: '2025-01-01T10:30:00.000Z',
                 severityLevel: AlarmTransitionSeverityLevel.Clear,
-                value: 'Edge Case',
                 condition: 'Edge Test',
                 shortText: 'Edge severity',
                 detailText: 'Edge case with unusual severity',
@@ -1212,7 +1166,6 @@ describe('AlarmTrendQueryHandler', () => {
                 transitionType: AlarmTransitionType.Set,
                 occurredAt: '2025-01-01T10:40:00.000Z',
                 severityLevel: 10 as AlarmTransitionSeverityLevel, // Should map to Critical (>=4)
-                value: 'Ultra High',
                 condition: 'Ultra High Test',
                 shortText: 'Ultra high severity',
                 detailText: 'Ultra high severity level',

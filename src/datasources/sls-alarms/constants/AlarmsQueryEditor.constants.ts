@@ -202,10 +202,6 @@ export const AlarmsPropertiesOptions: Record<
     label: 'Transition type',
     value: AlarmsTransitionProperties.transitionType,
   },
-  [AlarmsTransitionProperties.transitionValue]: {
-    label: 'Transition value',
-    value: AlarmsTransitionProperties.transitionValue,
-  },
   [AlarmsSpecificProperties.updatedAt]: {
     label: 'Updated',
     value: AlarmsSpecificProperties.updatedAt,
@@ -251,7 +247,6 @@ export const TransitionPropertyKeyMap: Record<
   [AlarmsTransitionProperties.transitionSeverityLevel]: 'severityLevel',
   [AlarmsTransitionProperties.transitionShortText]: 'shortText',
   [AlarmsTransitionProperties.transitionType]: 'transitionType',
-  [AlarmsTransitionProperties.transitionValue]: 'value',
 };
 
 export const AlarmPropertyKeyMap: Record<
