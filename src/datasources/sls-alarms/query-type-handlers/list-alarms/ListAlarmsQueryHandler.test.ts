@@ -16,7 +16,6 @@ const mockTransition1 = {
   transitionType: AlarmTransitionType.Set,
   occurredAt: '2025-09-16T09:00:00Z',
   severityLevel: 3,
-  value: 'High',
   condition: 'Temperature',
   shortText: 'Temp High',
   detailText: 'Temperature exceeded threshold',
@@ -29,7 +28,6 @@ const mockTransition2 = {
   transitionType: AlarmTransitionType.Clear,
   occurredAt: '2025-09-16T10:00:00Z',
   severityLevel: 0,
-  value: 'Clear',
   condition: 'Humidity',
   shortText: 'Humidity Normal',
   detailText: 'Humidity back to normal',
@@ -909,7 +907,6 @@ describe('ListAlarmsQueryHandler', () => {
               { name: 'Transition severity', type: 'string', values: [''] },
               { name: 'Transition short text', type: 'string', values: ['Humidity Normal'] },
               { name: 'Transition type', type: 'string', values: ['CLEAR'] },
-              { name: 'Transition value', type: 'string', values: ['Clear'] },
               { name: 'Updated', type: 'time', values: ['2025-09-16T10:29:00Z'] },
               { name: 'Workspace', type: 'string', values: ['Lab-1'] },
             ],
@@ -1165,11 +1162,6 @@ describe('ListAlarmsQueryHandler', () => {
                 type: 'string',
                 values: ['SET', 'CLEAR'],
               },
-              {
-                name: 'Transition value',
-                type: 'string',
-                values: ['High', 'Clear'],
-              },
             ],
           });
         });
@@ -1231,11 +1223,6 @@ describe('ListAlarmsQueryHandler', () => {
                 name: 'Transition type',
                 type: 'string',
                 values: ['SET'],
-              },
-              {
-                name: 'Transition value',
-                type: 'string',
-                values: ['High'],
               },
             ],
           });
@@ -1301,11 +1288,6 @@ describe('ListAlarmsQueryHandler', () => {
                 type: 'string',
                 values: ['SET'],
               },
-              {
-                name: 'Transition value',
-                type: 'string',
-                values: ['High'],
-              },
             ],
           });
         });
@@ -1316,7 +1298,6 @@ describe('ListAlarmsQueryHandler', () => {
               AlarmsTransitionProperties.transitionCondition,
               AlarmsTransitionProperties.transitionDetailText,
               AlarmsTransitionProperties.transitionShortText,
-              AlarmsTransitionProperties.transitionValue,
               AlarmsTransitionProperties.transitionType,
             ],
             transitionInclusionOption: TransitionInclusionOption.All,
@@ -1332,7 +1313,6 @@ describe('ListAlarmsQueryHandler', () => {
                     condition: '',
                     detailText: '',
                     shortText: '',
-                    value: '',
                   },
                 ],
               }
@@ -1359,11 +1339,6 @@ describe('ListAlarmsQueryHandler', () => {
                 name: 'Transition short text',
                 type: 'string',
                 values: ['Temp High', ''],
-              },
-              {
-                name: 'Transition value',
-                type: 'string',
-                values: ['High', ''],
               },
               {
                 name: 'Transition type',
@@ -1558,7 +1533,6 @@ describe('ListAlarmsQueryHandler', () => {
               AlarmsTransitionProperties.transitionCondition,
               AlarmsTransitionProperties.transitionDetailText,
               AlarmsTransitionProperties.transitionShortText,
-              AlarmsTransitionProperties.transitionValue,
               AlarmsTransitionProperties.transitionType,
             ],
             transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
@@ -1576,7 +1550,6 @@ describe('ListAlarmsQueryHandler', () => {
                     condition: '',
                     detailText: '',
                     shortText: '',
-                    value: '',
                     transitionType: AlarmTransitionType.Clear,
                   },
                 ],
@@ -1604,11 +1577,6 @@ describe('ListAlarmsQueryHandler', () => {
                 name: 'Transition short text',
                 type: 'string',
                 values: ['Temp High', ''],
-              },
-              {
-                name: 'Transition value',
-                type: 'string',
-                values: ['High', ''],
               },
               {
                 name: 'Transition type',

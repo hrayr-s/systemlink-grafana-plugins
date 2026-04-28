@@ -56,9 +56,11 @@ export interface Alarm {
   displayName: string;
   description: string;
   keywords: string[];
+  notes?: AlarmNote[];
   properties: {
     [key: string]: string;
   };
+  notificationStrategyIds?: string[];
   resourceType: string;
 }
 
@@ -68,11 +70,16 @@ export enum TransitionInclusionOption {
   All = 'ALL',
 };
 
+export interface AlarmNote {
+  note: string;
+  createdAt?: string;
+  user?: string;
+}
+
 export interface AlarmTransition {
   transitionType: AlarmTransitionType;
   occurredAt: string;
   severityLevel: number;
-  value: string;
   condition: string;
   shortText: string;
   detailText: string;

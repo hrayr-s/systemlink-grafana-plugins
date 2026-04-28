@@ -63,7 +63,6 @@ export enum AlarmsTransitionProperties {
   transitionSeverityLevel = 'transitionSeverityLevel',
   transitionShortText = 'transitionShortText',
   transitionType = 'transitionType',
-  transitionValue = 'transitionValue',
 }
 
 export type AlarmsProperties = AlarmsSpecificProperties | AlarmsTransitionProperties;
