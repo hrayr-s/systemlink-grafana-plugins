@@ -1,6 +1,6 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { AlarmsQueryCache, alarmsCacheTTL, AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from '../../types/ListAlarms.types';
-import { Alarm, AlarmsVariableQuery, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
+import { Alarm, AlarmsVariableQuery, OrderBy, QueryAlarmsRequest, SubQuery, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { AlarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TransitionPropertyKeyMap, QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, TRANSITION_SPECIFIC_PROPERTIES } from '../../constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from '../../constants/DefaultQueries.constants';
@@ -31,13 +31,13 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
+    const subQuery = this.buildSubQueryFromFilter(options.scopedVars, query.filter);
 
     if (query.outputType === OutputType.TotalCount) {
-      return this.handleTotalCountQuery(query);
+      return this.handleTotalCountQuery(query, subQuery);
     }
 
-    return this.handlePropertiesQuery(query);
+    return this.handlePropertiesQuery(query, subQuery);
   }
 
   public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
@@ -47,10 +47,12 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
         return [];
       } 
       
-      const filter = this.transformAlarmsQuery(options?.scopedVars || {}, query.filter) ?? '';
-      const orderByDescending = query.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING;
+      const subQuery = this.buildSubQueryFromFilter(options?.scopedVars || {}, query.filter);
+      const orderBy = (query.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING)
+        ? OrderBy.DateUpdatedBackward
+        : OrderBy.DateUpdatedForward;
       const returnMostRecentlyOccurredOnly = true;
-      const requestBody = { filter, take, orderByDescending, returnMostRecentlyOccurredOnly };
+      const requestBody: QueryAlarmsRequest = { ...subQuery, take, orderBy, returnMostRecentlyOccurredOnly };
       const alarms = await this.queryAlarmsInBatches(requestBody);
 
       const alarmsOptions = alarms.map(alarm => ({
@@ -70,9 +72,9 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     return (TRANSITION_SPECIFIC_PROPERTIES as readonly AlarmsProperties[]).includes(property);
   }
 
-  private async handleTotalCountQuery(query: ListAlarmsQuery): Promise<DataFrameDTO> {
-    const requestBody = {
-      filter: query.filter ?? '',
+  private async handleTotalCountQuery(query: ListAlarmsQuery, subQuery: SubQuery): Promise<DataFrameDTO> {
+    const requestBody: QueryAlarmsRequest = {
+      ...subQuery,
       take: MINIMUM_TAKE,
       returnCount: true,
     };
@@ -87,14 +89,14 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     };
   }
   
-  private async handlePropertiesQuery(query: ListAlarmsQuery): Promise<DataFrameDTO> {
+  private async handlePropertiesQuery(query: ListAlarmsQuery, subQuery: SubQuery): Promise<DataFrameDTO> {
     let mappedFields: DataFrameDTO['fields'] | undefined;
 
     if (
       this.isTakeValid(query.take, query.transitionInclusionOption) &&
       this.isPropertiesValid(query.properties)
     ) {
-      const alarmsResponse = await this.getAlarms(query);
+      const alarmsResponse = await this.getAlarms(query, subQuery);
 
       const flattenedAlarms  =
         query.transitionInclusionOption === TransitionInclusionOption.All
@@ -112,9 +114,9 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     };
   }
 
-  private async getAlarms(query: ListAlarmsQuery): Promise<Alarm[]> {
+  private async getAlarms(query: ListAlarmsQuery, subQuery: SubQuery): Promise<Alarm[]> {
     const requestInputs = JSON.stringify({  
-      filter: query.filter,
+      subQuery,
       take: query.take,
       descending: query.descending,
       transitionInclusionOption: query.transitionInclusionOption
@@ -129,7 +131,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
 
     let response = cachedAlarmsQuery?.response ?? [];
     if (!onlyPropertiesChanged) {
-      response = await this.queryAlarmsData(query);
+      response = await this.queryAlarmsData(query, subQuery);
     }
 
    const updatedCacheEntry = { 
@@ -158,11 +160,13 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     return !!properties && properties.length > 0;
   }
 
-  private async queryAlarmsData(alarmsQuery: ListAlarmsQuery): Promise<Alarm[]> {
+  private async queryAlarmsData(alarmsQuery: ListAlarmsQuery, subQuery: SubQuery): Promise<Alarm[]> {
     const alarmsRequestBody: QueryAlarmsRequest = {
-      filter: alarmsQuery.filter ?? '',
+      ...subQuery,
       take: alarmsQuery.take,
-      orderByDescending: alarmsQuery.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING,
+      orderBy: (alarmsQuery.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING)
+        ? OrderBy.DateUpdatedBackward
+        : OrderBy.DateUpdatedForward,
       transitionInclusionOption: alarmsQuery.transitionInclusionOption ?? DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION,
     }
 
