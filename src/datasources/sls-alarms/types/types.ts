@@ -15,19 +15,49 @@ export enum QueryType {
   AlarmTrend = 'Alarm Trend'
 }
 
-export interface QueryAlarmsRequest {
-  filter?: string;
-  transitionInclusionOption?: TransitionInclusionOption;
-  take?: number;
-  orderBy?: string;
-  orderByDescending?: boolean;
-  continuationToken?: string;
-  returnCount?: boolean;
+export interface SubQuery {
+  alarmId?: string;
+  description?: string;
+  displayName?: string;
+  active?: boolean;
+  clear?: boolean;
+  acknowledged?: boolean;
+  acknowledgedAtMin?: string;
+  acknowledgedAtMax?: string;
+  occurredAtMin?: string;
+  occurredAtMax?: string;
+  currentSeverityLevelMin?: number;
+  currentSeverityLevelMax?: number;
+  highestSeverityLevelMin?: number;
+  highestSeverityLevelMax?: number;
+  createdBy?: string;
+  channel?: string;
+  resourceType?: string;
+  properties?: { [key: string]: string };
+  keywords?: string[];
+  workspaces?: string[];
+}
+
+export enum OrderBy {
+  DateUpdatedForward = 'DATE_UPDATED_FORWARD',
+  DateUpdatedBackward = 'DATE_UPDATED_BACKWARD',
+}
+
+export interface QueryAlarmsRequest extends SubQuery {
+  subQueries?: SubQuery[];
   returnMostRecentlyOccurredOnly?: boolean;
+  orderBy?: OrderBy;
+  skip?: number;
+  take?: number;
+  /** @deprecated Not in API schema - kept for backward compatibility */
+  transitionInclusionOption?: TransitionInclusionOption;
+  /** @deprecated Not in API schema - kept for backward compatibility */
+  continuationToken?: string;
+  /** @deprecated Not in API schema - use totalCount from response instead */
+  returnCount?: boolean;
 }
 
 export interface QueryAlarmsResponse {
-  alarms?: Alarm[];
   filterMatches?: Alarm[];
   totalCount?: number;
   continuationToken?: string;
@@ -56,11 +86,9 @@ export interface Alarm {
   displayName: string;
   description: string;
   keywords: string[];
-  notes?: AlarmNote[];
   properties: {
     [key: string]: string;
   };
-  notificationStrategyIds?: string[];
   resourceType: string;
 }
 
@@ -69,12 +97,6 @@ export enum TransitionInclusionOption {
   MostRecentOnly = 'MOST_RECENT_ONLY',
   All = 'ALL',
 };
-
-export interface AlarmNote {
-  note: string;
-  createdAt?: string;
-  user?: string;
-}
 
 export interface AlarmTransition {
   transitionType: AlarmTransitionType;

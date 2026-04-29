@@ -68,7 +68,7 @@ const sampleAlarm: Alarm = {
 };
 
 const mockAlarmResponse: QueryAlarmsResponse = {
-  alarms: [sampleAlarm],
+  filterMatches: [sampleAlarm],
   totalCount: 1,
   continuationToken: '',
 };
@@ -181,7 +181,7 @@ describe('ListAlarmsQueryHandler', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            filter: 'acknowledgedAt > "2025-01-01T00:00:00.000Z"',
+            acknowledgedAtMin: '2025-01-01T00:00:00.000Z',
           }),
         })
       );
@@ -1836,7 +1836,8 @@ describe('ListAlarmsQueryHandler', () => {
       expect(spy).toHaveBeenCalledWith(
         expect.objectContaining({
           take: 500,
-        })
+        }),
+        expect.any(Object)
       );
     });
 
@@ -1877,7 +1878,8 @@ describe('ListAlarmsQueryHandler', () => {
           expect.objectContaining({
             take,
             transitionInclusionOption,
-          })
+          }),
+          expect.any(Object)
         );
       });
     });
@@ -1905,14 +1907,14 @@ describe('ListAlarmsQueryHandler', () => {
         });
       });
 
-      it('should call the query alarms API with an empty filter, take set to 1 and returnCount set to true by default', async () => {
+      it('should call the query alarms API with take set to 1 and returnCount set to true by default', async () => {
         await datastore.runQuery(query, options);
 
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
             url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
             method: 'POST',
-            data: { filter: '', take: 1, returnCount: true },
+            data: { take: 1, returnCount: true },
             showErrorAlert: false
           })
         );
@@ -1937,7 +1939,7 @@ describe('ListAlarmsQueryHandler', () => {
           expect.objectContaining({
             url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
             method: 'POST',
-            data: { filter: 'alarmId = "test-alarm-123"', take: 1, returnCount: true },
+            data: { alarmId: 'test-alarm-123', take: 1, returnCount: true },
             showErrorAlert: false
           })
         );
@@ -1952,7 +1954,7 @@ describe('ListAlarmsQueryHandler', () => {
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
             data: expect.objectContaining({
-              filter: 'acknowledgedAt > "2025-01-01T00:00:00.000Z"',
+              acknowledgedAtMin: '2025-01-01T00:00:00.000Z',
             }),
           })
         );
@@ -1963,29 +1965,29 @@ describe('ListAlarmsQueryHandler', () => {
   });
 
   describe('queryAlarmsData', () => {
-    it('should default to empty filter when filter is not provided in query', async () => {
+    it('should default to empty SubQuery when filter is not provided in query', async () => {
       const query = buildAlarmsQuery({ filter: undefined });
 
       await datastore.runQuery(query, options);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({
-            filter: '',
+          data: expect.not.objectContaining({
+            filter: expect.anything(),
           }),
         })
       );
     });
 
-    it('should use the provided filter when querying alarms', async () => {
-      const query = buildAlarmsQuery({ filter: 'test-filter' });
+    it('should use the provided filter converted to SubQuery when querying alarms', async () => {
+      const query = buildAlarmsQuery({ filter: 'alarmId = "test-alarm-1"' });
 
       await datastore.runQuery(query, options);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            filter: 'test-filter',
+            alarmId: 'test-alarm-1',
           }),
         })
       );
@@ -2033,7 +2035,7 @@ describe('ListAlarmsQueryHandler', () => {
       );
     });
 
-    it('should pass descending from query to the API', async () => {
+    it('should pass descending from query to the API as orderBy', async () => {
       const query = buildAlarmsQuery({ descending: false });
 
       await datastore.runQuery(query, options);
@@ -2041,13 +2043,13 @@ describe('ListAlarmsQueryHandler', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            orderByDescending: false,
+            orderBy: 'DATE_UPDATED_FORWARD',
           }),
         })
       );
     });
 
-    it('should default to true for descending order when it is not provided in query', async () => {
+    it('should default to DATE_UPDATED_BACKWARD for descending order when it is not provided in query', async () => {
       const query = buildAlarmsQuery({ descending: undefined });
 
       await datastore.runQuery(query, options);
@@ -2055,7 +2057,7 @@ describe('ListAlarmsQueryHandler', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            orderByDescending: true,
+            orderBy: 'DATE_UPDATED_BACKWARD',
           }),
         })
       );
@@ -2310,7 +2312,7 @@ describe('ListAlarmsQueryHandler', () => {
     let options: LegacyMetricFindQueryOptions;
 
     const mockMetricResponse: QueryAlarmsResponse = {
-      alarms: [
+      filterMatches: [
         {
           ...sampleAlarm,
           alarmId: 'ALARM-001',
@@ -2361,8 +2363,7 @@ describe('ListAlarmsQueryHandler', () => {
           url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
           method: 'POST',
           data: {
-            filter: '',
-            orderByDescending: true,
+            orderBy: 'DATE_UPDATED_BACKWARD',
             returnMostRecentlyOccurredOnly: true,
             take: 1000
           },
@@ -2389,13 +2390,13 @@ describe('ListAlarmsQueryHandler', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            filter: 'workspace = "Lab-1"'
+            workspaces: ['Lab-1']
           })
         })
       );
     });
 
-    it('should set `orderByDescending` to true when descending set to undefined', async () => {
+    it('should set orderBy to DATE_UPDATED_BACKWARD when descending set to undefined', async () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
         filter: 'workspace = "Lab-1"',
@@ -2408,7 +2409,7 @@ describe('ListAlarmsQueryHandler', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            orderByDescending: true
+            orderBy: 'DATE_UPDATED_BACKWARD'
           })
         })
       );
@@ -2428,7 +2429,7 @@ describe('ListAlarmsQueryHandler', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            filter: 'workspace = "Lab-1"'
+            workspaces: ['Lab-1']
           })
         })
       );
@@ -2467,7 +2468,7 @@ describe('ListAlarmsQueryHandler', () => {
 
     it('should sort results alphabetically by text', async () => {
       const unsortedResponse: QueryAlarmsResponse = {
-        alarms: [
+        filterMatches: [
           { ...sampleAlarm, alarmId: 'ALARM-003', displayName: 'Z Last Alarm' },
           { ...sampleAlarm, alarmId: 'ALARM-001', displayName: 'A First Alarm' },
           { ...sampleAlarm, alarmId: 'ALARM-002', displayName: 'M Middle Alarm' }

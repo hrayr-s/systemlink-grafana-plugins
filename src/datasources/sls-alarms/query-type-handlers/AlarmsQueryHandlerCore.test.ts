@@ -592,9 +592,9 @@ describe('AlarmsQueryHandlerCore', () => {
 
   describe('queryAlarmsInBatches', () => {
     it('queryRecord callback should call queryAlarms with correct parameters', async () => {
-      const requestBody = { filter: 'active = "true"', take: 100 };
+      const requestBody: QueryAlarmsRequest = { active: true, take: 100 };
       const mockAlarmsResponse = {
-        alarms: [{ id: '1' }, { id: '2' }],
+        filterMatches: [{ id: '1' }, { id: '2' }],
         continuationToken: null,
         totalCount: null,
       };
@@ -611,11 +611,11 @@ describe('AlarmsQueryHandlerCore', () => {
       const result = await datastore.queryAlarmsInBatchesWrapper(requestBody);
 
       expect((datastore as any).queryAlarms).toHaveBeenCalledWith({
-        filter: 'active = "true"',
+        active: true,
         take: 100,
         continuationToken: undefined,
       });
-      expect(result).toEqual(mockAlarmsResponse.alarms);
+      expect(result).toEqual(mockAlarmsResponse.filterMatches);
     });
 
     it('should pass correct batch configuration and take to queryInBatches', async () => {
@@ -636,9 +636,9 @@ describe('AlarmsQueryHandlerCore', () => {
 
   describe('queryAlarmsUntilComplete', () => {
     it('queryRecord callback should call queryAlarms with correct parameters when take is provided', async () => {
-      const requestBody = { filter: 'active = "true"', take: 100 };
+      const requestBody: QueryAlarmsRequest = { active: true, take: 100 };
       const mockAlarmsResponse = {
-        alarms: [{ id: '1' }, { id: '2' }],
+        filterMatches: [{ id: '1' }, { id: '2' }],
         continuationToken: null,
         totalCount: null,
       };
@@ -655,17 +655,17 @@ describe('AlarmsQueryHandlerCore', () => {
       const result = await datastore.queryAlarmsUntilCompleteWrapper(requestBody);
 
       expect((datastore as any).queryAlarms).toHaveBeenCalledWith({
-        filter: 'active = "true"',
+        active: true,
         take: 100,
         continuationToken: undefined,
       });
-      expect(result).toEqual(mockAlarmsResponse.alarms);
+      expect(result).toEqual(mockAlarmsResponse.filterMatches);
     });
 
     it('queryRecord callback should call queryAlarms with correct parameters when take is not provided', async () => {
-      const requestBody = { filter: 'severity = "HIGH"' };
+      const requestBody: QueryAlarmsRequest = { take: undefined };
       const mockAlarmsResponse = {
-        alarms: [{ id: '1' }, { id: '2' }, { id: '3' }],
+        filterMatches: [{ id: '1' }, { id: '2' }, { id: '3' }],
         continuationToken: null,
         totalCount: 3,
       };
@@ -678,11 +678,10 @@ describe('AlarmsQueryHandlerCore', () => {
       const result = await datastore.queryAlarmsUntilCompleteWrapper(requestBody);
 
       expect((datastore as any).queryAlarms).toHaveBeenCalledWith({
-        filter: 'severity = "HIGH"',
         take: undefined,
         continuationToken: undefined,
       });
-      expect(result).toEqual(mockAlarmsResponse.alarms);
+      expect(result).toEqual(mockAlarmsResponse.filterMatches);
     });
 
     it('should pass correct batch configuration and take to queryUntilComplete', async () => {
@@ -703,13 +702,13 @@ describe('AlarmsQueryHandlerCore', () => {
       const requestBody = { filter: 'channel = "test"', take: 100 };
 
       const firstPageResponse = {
-        alarms: [{ id: '1' }, { id: '2' }],
+        filterMatches: [{ id: '1' }, { id: '2' }],
         continuationToken: 'next-page-token',
         totalCount: 150,
       };
       
       const secondPageResponse = {
-        alarms: [{ id: '3' }, { id: '4' }],
+        filterMatches: [{ id: '3' }, { id: '4' }],
         continuationToken: null,
         totalCount: 150,
       };

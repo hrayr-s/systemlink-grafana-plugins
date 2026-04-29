@@ -1,6 +1,6 @@
 import { DataSourceBase } from 'core/DataSourceBase';
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars, DataSourceInstanceSettings } from '@grafana/data';
-import { Alarm, AlarmsQuery, AlarmTransitionSeverityLevel, QueryAlarmsRequest, QueryAlarmsResponse } from '../types/types';
+import { Alarm, AlarmsQuery, AlarmTransitionSeverityLevel, QueryAlarmsRequest, QueryAlarmsResponse, SubQuery } from '../types/types';
 import { extractErrorInfo } from 'core/errors';
 import { QUERY_ALARMS_MAXIMUM_TAKE, QUERY_ALARMS_RELATIVE_PATH, QUERY_ALARMS_REQUEST_PER_SECOND } from '../constants/QueryAlarms.constants';
 import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
@@ -12,6 +12,7 @@ import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana
 import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from '../constants/AlarmProperties.constants';
 import { ALARMS_TIME_FIELDS } from '../constants/AlarmsQueryEditor.constants';
 import { AlarmsProperties } from '../types/ListAlarms.types';
+import { parseFilterToSubQuery } from '../utils/filter-to-subquery';
 
 export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery> {
   public errorTitle?: string;
@@ -146,6 +147,11 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
     return this.transformSeverityLevelFilters(transformedQuery);
   }
 
+  protected buildSubQueryFromFilter(scopedVars: ScopedVars, filter?: string): SubQuery {
+    const transformedFilter = this.transformAlarmsQuery(scopedVars, filter);
+    return parseFilterToSubQuery(transformedFilter).subQuery;
+  }
+
   protected isTimeField(field: AlarmsProperties): boolean {
     return ALARMS_TIME_FIELDS.includes(field);
   }
@@ -200,7 +206,7 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
   }
 
   private getAlarmsFromQueryResponse(response: QueryAlarmsResponse): Alarm[] {
-    return response.filterMatches ?? response.alarms ?? [];
+    return response.filterMatches ?? [];
   }
 
   private getStatusCodeErrorMessage(errorDetails: { statusCode: string; message: string }): string {

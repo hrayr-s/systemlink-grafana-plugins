@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, FieldType, ScopedVars } from '@grafana/data';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { defaultAlarmTrendQuery } from '../../constants/DefaultQueries.constants';
-import { Alarm, AlarmTransitionSeverityLevel, AlarmTransitionType, TransitionInclusionOption } from '../../types/types';
+import { Alarm, AlarmTransitionSeverityLevel, AlarmTransitionType, QueryAlarmsRequest, SubQuery, TransitionInclusionOption } from '../../types/types';
 import { AlarmTrendQuery, AlarmTransitionEvent, AlarmTrendSeverityLevelLabel, AlarmWithNumericTimeInTransitions } from '../../types/AlarmTrend.types';
 
 export class AlarmTrendQueryHandler extends AlarmsQueryHandlerCore {
@@ -12,8 +12,7 @@ export class AlarmTrendQueryHandler extends AlarmsQueryHandlerCore {
     const { start, end, intervalMs } = this.extractTimeParameters(options);
     const startTime = start.getTime();
     const endTime = end.getTime();
-    const filter = this.getTrendQueryFilter(query, start, end, options.scopedVars);
-    const requestBody = { filter, transitionInclusionOption: TransitionInclusionOption.All };
+    const requestBody = this.buildTrendQueryRequest(query, start, end, options.scopedVars);
     const alarms = await this.queryAlarmsUntilComplete(requestBody);
     const alarmsWithTimestamp = this.enrichTransitionsWithTimestamp(alarms);
 
@@ -34,31 +33,33 @@ export class AlarmTrendQueryHandler extends AlarmsQueryHandlerCore {
     return { start, end, intervalMs };
   }
 
-  private getTrendQueryFilter(
+  private buildTrendQueryRequest(
     query: AlarmTrendQuery,
     start: Date,
     end: Date,
     scopedVars: ScopedVars
-  ): string {
+  ): QueryAlarmsRequest {
     const startIso = start.toISOString();
     const endIso = end.toISOString();
-    const activeAndTransitionedBeforeStartFilter = `(active = "true" && mostRecentSetOccurredAt < "${startIso}")`;
-    const createdBeforeStartAndTransitionedAfterEndFilter = `(occurredAt < "${startIso}" && mostRecentTransitionOccurredAt > "${endIso}")`;
-    const occurredBetweenStartAndEndFilter = `(occurredAt >= "${startIso}" && occurredAt <= "${endIso}")`;
-    const transitionedBetweenStartAndEndFilter = `(mostRecentTransitionOccurredAt >= "${startIso}" && mostRecentTransitionOccurredAt <= "${endIso}")`;
-    const defaultTrendQueryFilter = `(${[
-      activeAndTransitionedBeforeStartFilter,
-      createdBeforeStartAndTransitionedAfterEndFilter,
-      occurredBetweenStartAndEndFilter,
-      transitionedBetweenStartAndEndFilter
-    ].join(' || ')})`;
 
-    if (query.filter && query.filter.trim() !== '') {
-      const transformedFilter = this.transformAlarmsQuery(scopedVars, query.filter);
-      return `${defaultTrendQueryFilter} && (${transformedFilter})`;
-    }
+    // SubQueries represent the OR conditions for capturing all alarms
+    // that could have been active during the time window:
+    // 1. Currently active alarms (may have been active during the window)
+    // 2. Alarms that occurred within the time window
+    const trendSubQueries: SubQuery[] = [
+      { active: true },
+      { occurredAtMin: startIso, occurredAtMax: endIso },
+    ];
 
-    return defaultTrendQueryFilter;
+    const userSubQuery = (query.filter && query.filter.trim() !== '')
+      ? this.buildSubQueryFromFilter(scopedVars, query.filter)
+      : {};
+
+    return {
+      ...userSubQuery,
+      subQueries: trendSubQueries,
+      transitionInclusionOption: TransitionInclusionOption.All,
+    };
   }
 
   private enrichTransitionsWithTimestamp(alarms: Alarm[]): AlarmWithNumericTimeInTransitions[] {
