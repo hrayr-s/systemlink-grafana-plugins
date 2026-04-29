@@ -64,7 +64,7 @@ const sampleAlarm: Alarm = {
 };
 
 const mockAlarmResponse: QueryAlarmsResponse = {
-  alarms: [sampleAlarm],
+  filterMatches: [sampleAlarm],
   totalCount: 1,
   continuationToken: '',
 };
@@ -145,31 +145,36 @@ describe('AlarmTrendQueryHandler', () => {
       );
     });
 
-    it('should include complete default trend filter structure in API request', async () => {
+    it('should include default trend subQueries in API request', async () => {
       const emptyFilterQuery = { refId: 'A', filter: '' };
 
       await datastore.runQuery(emptyFilterQuery, options);
 
-      const expectedFilterPattern = /^\(\(active = "true" && mostRecentSetOccurredAt < "2025-01-01T10:00:00\.000Z"\) \|\| \(occurredAt < "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt > "2025-01-01T11:00:00\.000Z"\) \|\| \(occurredAt >= "2025-01-01T10:00:00\.000Z" && occurredAt <= "2025-01-01T11:00:00\.000Z"\) \|\| \(mostRecentTransitionOccurredAt >= "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt <= "2025-01-01T11:00:00\.000Z"\)\)$/;
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            filter: expect.stringMatching(expectedFilterPattern)
+            subQueries: [
+              { active: true },
+              { occurredAtMin: '2025-01-01T10:00:00.000Z', occurredAtMax: '2025-01-01T11:00:00.000Z' },
+            ]
           })
         })
       );
     });
 
-    it('should combine custom filter with default trend filter using AND operator', async () => {
-      const customFilterQuery = { refId: 'A', filter: 'severity = "HIGH"' };
+    it('should combine custom filter as top-level SubQuery with default trend subQueries', async () => {
+      const customFilterQuery = { refId: 'A', filter: 'channel = "test-channel"' };
 
       await datastore.runQuery(customFilterQuery, options);
 
-      const expectedFilterPattern = /^\(\(active = "true" && mostRecentSetOccurredAt < "2025-01-01T10:00:00\.000Z"\) \|\| \(occurredAt < "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt > "2025-01-01T11:00:00\.000Z"\) \|\| \(occurredAt >= "2025-01-01T10:00:00\.000Z" && occurredAt <= "2025-01-01T11:00:00\.000Z"\) \|\| \(mostRecentTransitionOccurredAt >= "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt <= "2025-01-01T11:00:00\.000Z"\)\) && \(severity = "HIGH"\)$/;
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            filter: expect.stringMatching(expectedFilterPattern)
+            channel: 'test-channel',
+            subQueries: [
+              { active: true },
+              { occurredAtMin: '2025-01-01T10:00:00.000Z', occurredAtMax: '2025-01-01T11:00:00.000Z' },
+            ]
           })
         })
       );
@@ -188,7 +193,7 @@ describe('AlarmTrendQueryHandler', () => {
           url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
           method: 'POST',
           data: expect.objectContaining({
-            filter: expect.stringContaining('workspace = "Lab-1"')
+            workspaces: ['Lab-1']
           }),
           showErrorAlert: false
         })
@@ -251,7 +256,7 @@ describe('AlarmTrendQueryHandler', () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
         .mockReturnValue(createFetchResponse({ 
-          alarms: alarmWithMultipleTransitions, 
+          filterMatches: alarmWithMultipleTransitions, 
           totalCount: 1, 
           continuationToken: '' 
         }));
@@ -272,7 +277,7 @@ describe('AlarmTrendQueryHandler', () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
         .mockReturnValue(createFetchResponse({ 
-          alarms: alarmsWithoutTransitions, 
+          filterMatches: alarmsWithoutTransitions, 
           totalCount: 2, 
           continuationToken: '' 
         }));
@@ -325,7 +330,7 @@ describe('AlarmTrendQueryHandler', () => {
       it('should handle empty alarms response', async () => {
         backendServer.fetch
           .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
-          .mockReturnValue(createFetchResponse({ alarms: [], totalCount: 0, continuationToken: '' }));
+          .mockReturnValue(createFetchResponse({ filterMatches: [], totalCount: 0, continuationToken: '' }));
   
         const result = await datastore.runQuery(query, options);
   
@@ -380,7 +385,7 @@ describe('AlarmTrendQueryHandler', () => {
 
         backendServer.fetch
           .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
-          .mockReturnValue(createFetchResponse({ alarms: multipleAlarms, totalCount: 2, continuationToken: '' }));
+          .mockReturnValue(createFetchResponse({ filterMatches: multipleAlarms, totalCount: 2, continuationToken: '' }));
 
         const result = await datastore.runQuery(query, options);
 
@@ -633,7 +638,7 @@ describe('AlarmTrendQueryHandler', () => {
         backendServer.fetch
           .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
           .mockReturnValue(createFetchResponse({ 
-            alarms: edgeCaseAlarms, 
+            filterMatches: edgeCaseAlarms, 
             totalCount: edgeCaseAlarms.length, 
             continuationToken: '' 
           }));
@@ -754,7 +759,7 @@ describe('AlarmTrendQueryHandler', () => {
       it('should initialize all severity groups to zero when no alarms', async () => {
         backendServer.fetch
           .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
-          .mockReturnValue(createFetchResponse({ alarms: [], totalCount: 0, continuationToken: '' }));
+          .mockReturnValue(createFetchResponse({ filterMatches: [], totalCount: 0, continuationToken: '' }));
 
         const result = await datastore.runQuery(query, options);
 
@@ -816,7 +821,7 @@ describe('AlarmTrendQueryHandler', () => {
         backendServer.fetch
           .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
           .mockReturnValue(createFetchResponse({ 
-            alarms: alarmsWithDifferentSeverities, 
+            filterMatches: alarmsWithDifferentSeverities, 
             totalCount: 3, 
             continuationToken: '' 
           }));
@@ -891,7 +896,7 @@ describe('AlarmTrendQueryHandler', () => {
         backendServer.fetch
           .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
           .mockReturnValue(createFetchResponse({ 
-            alarms: alarmWithSeverityTransitions, 
+            filterMatches: alarmWithSeverityTransitions, 
             totalCount: 1, 
             continuationToken: '' 
           }));
@@ -941,7 +946,7 @@ describe('AlarmTrendQueryHandler', () => {
         backendServer.fetch
           .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
           .mockReturnValue(createFetchResponse({ 
-            alarms: alarmsWithEdgeSeverities, 
+            filterMatches: alarmsWithEdgeSeverities, 
             totalCount: 2, 
             continuationToken: '' 
           }));
@@ -1179,7 +1184,7 @@ describe('AlarmTrendQueryHandler', () => {
         backendServer.fetch
           .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
           .mockReturnValue(createFetchResponse({ 
-            alarms: edgeCaseAlarms, 
+            filterMatches: edgeCaseAlarms, 
             totalCount: edgeCaseAlarms.length, 
             continuationToken: '' 
           }));
