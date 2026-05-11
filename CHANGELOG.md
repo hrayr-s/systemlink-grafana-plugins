@@ -1,3 +1,9 @@
+## [4.149.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.149.1...v4.149.2) (2026-05-11)
+
+### Bug Fixes
+
+* **query-builder:** use nullish coalescing in transformBasedOnContainsOperations ([#723](https://github.com/ni/systemlink-grafana-plugins/issues/723)) ([0051945](https://github.com/ni/systemlink-grafana-plugins/commit/005194581eae5b32795a9eafb9ea79cada96dcec))
+
 ## [4.149.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.149.0...v4.149.1) (2026-05-06)
 
 ### Bug Fixes
