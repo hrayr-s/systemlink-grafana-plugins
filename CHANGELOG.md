@@ -1,3 +1,9 @@
+## [4.149.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.149.2...v4.149.3) (2026-05-12)
+
+### Bug Fixes
+
+* **data-frame:** strip CSV apostrophe escape prefix from string column values ([#724](https://github.com/ni/systemlink-grafana-plugins/issues/724)) ([00a12a0](https://github.com/ni/systemlink-grafana-plugins/commit/00a12a05cb26058f694ea2c1c2a17beb17d6827c))
+
 ## [4.149.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.149.1...v4.149.2) (2026-05-11)
 
 ### Bug Fixes
