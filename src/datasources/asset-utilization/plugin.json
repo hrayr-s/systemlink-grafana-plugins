@@ -1,0 +1,15 @@
+{
+  "type": "datasource",
+  "name": "SystemLink Assets Utilization",
+  "id": "ni-slsasset-utilization-datasource",
+  "metrics": true,
+  "info": {
+    "author": {
+      "name": "NI"
+    },
+    "logos": {
+      "small": "img/logo-ni.svg",
+      "large": "img/logo-ni.svg"
+    }
+  }
+}
