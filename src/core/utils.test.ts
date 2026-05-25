@@ -130,12 +130,11 @@ describe('replaceVariables', () => {
   beforeEach(() => {
     mockTemplateSrv = {
       containsTemplate: jest.fn(),
-      replace: jest.fn(),
+      replace: jest.fn((v: string) => v),
     } as unknown as TemplateSrv;
   });
 
   test('should replace variables when multi-value variables are selected', () => {
-    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(true);
     mockTemplateSrv.replace = jest.fn().mockReturnValue('{value1,value2}');
 
     const result = replaceVariables(['$var1'], mockTemplateSrv);
@@ -144,7 +143,6 @@ describe('replaceVariables', () => {
   });
 
   test('should replace variables when single value variable is selected', () => {
-    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(true);
     mockTemplateSrv.replace = jest.fn().mockReturnValue('value1');
 
     const result = replaceVariables(['$var1'], mockTemplateSrv);
@@ -153,7 +151,6 @@ describe('replaceVariables', () => {
   });
 
   test('should replace variables when multiple variables are selected', () => {
-    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(true);
     mockTemplateSrv.replace = jest.fn((variable: string) => ({
       '$var1': '{value1,value2}',
       '$var2': '{value3,value4}',
@@ -166,7 +163,7 @@ describe('replaceVariables', () => {
   })
 
   test('should return original values when no variables are found', () => {
-    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(false);
+    mockTemplateSrv.replace = jest.fn((v: string) => v);
 
     const result = replaceVariables(['value1', 'value2'], mockTemplateSrv);
 
@@ -174,7 +171,6 @@ describe('replaceVariables', () => {
   });
 
   test('should deduplicate and flatten the replaced values', () => {
-    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(true);
     mockTemplateSrv.replace = jest.fn((variable: string) => ({
       '$var1': '{value1,value2}',
       '$var2': '{value2,value3}',
@@ -183,6 +179,26 @@ describe('replaceVariables', () => {
     const result = replaceVariables(['$var1', '$var2', '$var3'], mockTemplateSrv);
 
     expect(result).toEqual(['value1', 'value2', 'value3']);
+  });
+
+  test('should resolve variables using ${} syntax', () => {
+    mockTemplateSrv.replace = jest.fn((variable: string) => ({
+      '${system_name}': 'resolved-minion-id',
+    }[variable] || variable));
+
+    const result = replaceVariables(['${system_name}'], mockTemplateSrv);
+
+    expect(result).toEqual(['resolved-minion-id']);
+  });
+
+  test('should fallback to ${} syntax when bare $varname is not resolved', () => {
+    mockTemplateSrv.replace = jest.fn((variable: string) => ({
+      '${system_name}': 'resolved-minion-id',
+    }[variable] || variable));
+
+    const result = replaceVariables(['$system_name'], mockTemplateSrv);
+
+    expect(result).toEqual(['resolved-minion-id']);
   });
 });
 
