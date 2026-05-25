@@ -1,5 +1,5 @@
 import { SelectableValue, toOption } from '@grafana/data';
-import { AssetMetadataQuery, EntityType } from '../types';
+import { AssetMetadataQuery, EntityType, SystemFilterOperator } from '../types';
 import { InlineField, MultiSelect, Select } from '@grafana/ui';
 import React, { useState } from 'react';
 import { useWorkspaceOptions } from '../../../core/utils';
@@ -8,6 +8,7 @@ import { FloatingError, parseErrorMessage } from '../../../core/errors';
 import { isValidId } from '../../data-frame/utils';
 import { useAsync } from 'react-use';
 import { AssetQueryEditorCommon, Props } from "./AssetQueryEditorCommon";
+import { systemOperatorOptions } from "../constants";
 
 export function QueryMetadataEditor(props: Props) {
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');
@@ -32,6 +33,11 @@ export function QueryMetadataEditor(props: Props) {
       );
     } else {
       common.handleQueryChange({ ...query, minionIds: [] }, true);
+    }
+  };
+  const handleSystemOperatorChange = (item: SelectableValue<SystemFilterOperator>): void => {
+    if (item.value && query.systemOperator !== item.value) {
+      common.handleQueryChange({ ...query, systemOperator: item.value }, true);
     }
   };
   const onWorkspaceChange = (item?: SelectableValue<string>): void => {
@@ -61,16 +67,24 @@ export function QueryMetadataEditor(props: Props) {
         />
       </InlineField>
       <InlineField label="Systems" tooltip={tooltips.system[EntityType.Asset]} labelWidth={22}>
-        <MultiSelect
-          isClearable
-          allowCreateWhileLoading
-          options={common.loadMinionIdOptions(minionIds.value)}
-          isValidNewOption={isValidId}
-          onChange={handleMinionIdsChange}
-          placeholder="Select systems"
-          width={85}
-          value={query.minionIds.map(toOption) || []} // Add default value
-        />
+        <>
+          <Select
+            options={systemOperatorOptions}
+            value={query.systemOperator ?? SystemFilterOperator.IN}
+            onChange={handleSystemOperatorChange}
+            width={10}
+          />
+          <MultiSelect
+            isClearable
+            allowCreateWhileLoading
+            options={common.loadMinionIdOptions(minionIds.value)}
+            isValidNewOption={isValidId}
+            onChange={handleMinionIdsChange}
+            placeholder="Select systems"
+            width={74}
+            value={query.minionIds.map(toOption) || []} // Add default value
+          />
+        </>
       </InlineField>
       <FloatingError message={errorMsg}/>
     </>

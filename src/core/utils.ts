@@ -54,11 +54,17 @@ export function getWorkspaceName(workspaces: Workspace[], id: string) {
  * Replace variables in an array of values.
  * Useful for multi-value variables.
  */
-export function replaceVariables(values: string[], templateSrv: TemplateSrv) {
+export function replaceVariables(values: string[], templateSrv: TemplateSrv, scopedVars?: Record<string, any>) {
   const replaced: string[] = [];
   values.forEach(value => {
-    if (templateSrv.containsTemplate(value)) {
-      const variableReplacedValues = templateSrv.replace(value) // Replace variable with their values
+    let replacedValue = templateSrv.replace(value, scopedVars);
+    // Fallback: if bare $varname wasn't resolved, try ${varname} syntax
+    if (replacedValue === value && /^\$\w+$/.test(value)) {
+      const varName = value.substring(1);
+      replacedValue = templateSrv.replace('${' + varName + '}', scopedVars);
+    }
+    if (replacedValue !== value) {
+      const variableReplacedValues = replacedValue
         .replace(/[{}]/g, '') // return values without curly braces for multi-value variables which are returned as {value1,value2}
         .split(',');
       replaced.push(...variableReplacedValues.filter(v => v.trim() !== ''));

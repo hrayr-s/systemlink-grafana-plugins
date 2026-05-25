@@ -21,7 +21,7 @@ it('renders with metadata query defaults', async () => {
   await workspacesLoaded();
 
   expect(screen.getAllByRole('combobox')[0]).toHaveAccessibleDescription('Any workspace');
-  expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Select systems');
+  expect(screen.getAllByRole('combobox')[2]).toHaveAccessibleDescription('Select systems');
 });
 
 it('renders with initial query and updates when user makes changes', async () => {
@@ -48,14 +48,14 @@ it('renders with initial query and updates when user makes changes', async () =>
   });
 
   // User selects system
-  await select(screen.getAllByRole('combobox')[1], '2', { container: document.body });
+  await select(screen.getAllByRole('combobox')[2], '2', { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ minionIds: ['2'] }));
   });
 
   // User adds another system
-  await select(screen.getAllByRole('combobox')[1], '$test_var', { container: document.body });
+  await select(screen.getAllByRole('combobox')[2], '${test_var}', { container: document.body });
   await waitFor(() => {
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ minionIds: ['2', '$test_var'] }));
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ minionIds: ['2', '${test_var}'] }));
   });
 });

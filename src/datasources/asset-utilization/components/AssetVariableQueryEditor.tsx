@@ -6,8 +6,9 @@ import { isValidId } from "../../data-frame/utils";
 import { SelectableValue, toOption } from "@grafana/data";
 import _ from "lodash";
 import { AssetQueryEditorCommon, Props } from "./AssetQueryEditorCommon";
-import { AssetMetadataQuery } from "../types";
+import { AssetMetadataQuery, SystemFilterOperator } from "../types";
 import { FloatingError, parseErrorMessage } from "../../../core/errors";
+import { systemOperatorOptions } from "../constants";
 
 export function AssetVariableQueryEditor(props: Props) {
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');
@@ -47,6 +48,12 @@ export function AssetVariableQueryEditor(props: Props) {
     }
   };
 
+  const handleSystemOperatorChange = (item: SelectableValue<SystemFilterOperator>): void => {
+    if (item.value && query.systemOperator !== item.value) {
+      common.onChange({ ...query, systemOperator: item.value });
+    }
+  };
+
   return (
     <>
       <InlineField label="Workspace" labelWidth={22}>
@@ -60,16 +67,24 @@ export function AssetVariableQueryEditor(props: Props) {
         />
       </InlineField>
       <InlineField label="System" labelWidth={22}>
-        <MultiSelect
-          isClearable
-          allowCreateWhileLoading
-          options={common.loadMinionIdOptions(minionIds.value)}
-          isValidNewOption={isValidId}
-          onChange={handleMinionIdsChange}
-          placeholder="Select system"
-          width={85}
-          value={query.minionIds.map(toOption) || []}
-        />
+        <>
+          <Select
+            options={systemOperatorOptions}
+            value={query.systemOperator ?? SystemFilterOperator.IN}
+            onChange={handleSystemOperatorChange}
+            width={10}
+          />
+          <MultiSelect
+            isClearable
+            allowCreateWhileLoading
+            options={common.loadMinionIdOptions(minionIds.value)}
+            isValidNewOption={isValidId}
+            onChange={handleMinionIdsChange}
+            placeholder="Select system"
+            width={74}
+            value={query.minionIds.map(toOption) || []}
+          />
+        </>
       </InlineField>
       <FloatingError message={errorMsg}/>
     </>
