@@ -30,7 +30,7 @@ export class AssetQueryEditorCommon {
   readonly getVariableOptions = (): Array<SelectableValue<string>> => {
     return this.datasource.templateSrv
       .getVariables()
-      .map(v => toOption('$' + v.name));
+      .map(v => toOption('${' + v.name + '}'));
   };
 
   readonly loadMinionIdOptions = (ids: SystemMetadata[] | void): Array<SelectableValue<string>> => {

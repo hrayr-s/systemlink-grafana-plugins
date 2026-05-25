@@ -1,10 +1,16 @@
 import {
-  EntityType, Weekday
+  EntityType, SystemFilterOperator, Weekday
 } from "./types";
 import { SelectableValue } from "@grafana/data";
 import { enumToOptions } from "../../core/utils";
 
 export const entityTypeOptions: SelectableValue[] = enumToOptions(EntityType);
+
+export const systemOperatorOptions: Array<SelectableValue<SystemFilterOperator>> = [
+  { label: 'IN', value: SystemFilterOperator.IN },
+  { label: '=', value: SystemFilterOperator.EQUALS },
+  { label: '!=', value: SystemFilterOperator.NOT_EQUALS },
+];
 export const minuteInSeconds = 60 * 1000;
 export const hourInSeconds = 60 * minuteInSeconds;
 export const secondsInDay = 24 * hourInSeconds;

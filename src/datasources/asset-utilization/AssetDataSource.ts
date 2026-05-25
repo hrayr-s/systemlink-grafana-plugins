@@ -19,7 +19,7 @@ import {
   AssetUtilizationOrderBy,
   AssetUtilizationQuery,
   EntityType, TimeSeriesUtilization, TimeSeriesUtilizationWithAlias,
-  QueryAssetUtilizationHistoryRequest, ServicePolicyModel, TimestampedUtilization,
+  QueryAssetUtilizationHistoryRequest, ServicePolicyModel, SystemFilterOperator, TimestampedUtilization,
 } from './types';
 import { getWorkspaceName, replaceVariables } from "../../core/utils";
 import { SystemProperties } from "../system/types";
@@ -51,12 +51,13 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     assetIdentifiers: [],
     minionIds: [],
     entityType: EntityType.Asset,
+    systemOperator: SystemFilterOperator.IN,
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     switch (query.type) {
       case AssetQueryType.Metadata:
-        return await this.handleMetadataQuery(query as AssetMetadataQuery);
+        return await this.handleMetadataQuery(query as AssetMetadataQuery, options);
       case AssetQueryType.Utilization:
         return await this.handleUtilizationQuery(query as AssetUtilizationQuery, options);
       default:
@@ -64,14 +65,14 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     }
   }
 
-  async handleMetadataQuery(query: AssetMetadataQuery) {
+  async handleMetadataQuery(query: AssetMetadataQuery, options: DataQueryRequest) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
-    const minionIds = replaceVariables(query.minionIds, this.templateSrv);
-    let workspaceId = this.templateSrv.replace(query.workspace);
+    const minionIds = replaceVariables(query.minionIds, this.templateSrv, options.scopedVars);
+    let workspaceId = this.templateSrv.replace(query.workspace, options.scopedVars);
     const conditions = [];
-    if (minionIds.length) {
-      const systemsCondition = minionIds.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`);
-      conditions.push(`(${systemsCondition.join(' or ')})`);
+    const systemCondition = this.buildSystemFilterCondition(minionIds, query.systemOperator);
+    if (systemCondition) {
+      conditions.push(systemCondition);
     }
     if (workspaceId) {
       conditions.push(`workspace = "${workspaceId}"`);
@@ -99,7 +100,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
 
   async handleUtilizationQuery(query: AssetUtilizationQuery, options: DataQueryRequest) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
-    let workspaceId = this.templateSrv.replace(query.workspace);
+    let workspaceId = this.templateSrv.replace(query.workspace, options.scopedVars);
     const timeSeriesUtilization = await this.fetchAndProcessUtilizationData(query, options, workspaceId);
     if (timeSeriesUtilization.length) {
       let timeSeriesUtilizationWithAlias: TimeSeriesUtilizationWithAlias[] = await this.addAliasesToData(query.entityType, timeSeriesUtilization, workspaceId)
@@ -115,34 +116,34 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
   private async fetchAndProcessUtilizationData(query: AssetUtilizationQuery, options: DataQueryRequest, workspaceId: string): Promise<TimeSeriesUtilization[]> {
     const [from, to] = [options.range.from.valueOf(), options.range.to.valueOf()];
     const workingHoursPolicy = await this.getServicePolicy();
-    let entityIds = await this.getEntityIds(query, workspaceId);
+    let entityIds = await this.getEntityIds(query, workspaceId, options.scopedVars);
     return await this.processEntities(entityIds, query, from, to, workingHoursPolicy, options);
   }
 
-  private async getEntityIds(query: AssetUtilizationQuery, workspaceId: string): Promise<string[]> {
-    const assets = replaceVariables(query.assetIdentifiers, this.templateSrv);
-    const systems = replaceVariables(query.minionIds, this.templateSrv);
+  private async getEntityIds(query: AssetUtilizationQuery, workspaceId: string, scopedVars?: Record<string, any>): Promise<string[]> {
+    const assets = replaceVariables(query.assetIdentifiers, this.templateSrv, scopedVars);
+    const systems = replaceVariables(query.minionIds, this.templateSrv, scopedVars);
     let entityIds = query.entityType === EntityType.Asset ? assets : systems;
     entityIds = entityIds.filter(Boolean);
 
     if (!entityIds.length) {
       if (query.entityType === EntityType.Asset) {
-        return await this.retrieveAssetIds(workspaceId, query.minionIds);
+        return await this.retrieveAssetIds(workspaceId, systems, query.systemOperator);
       } else {
-        return await this.retrieveSystemIds(query.workspace);
+        return await this.retrieveSystemIds(workspaceId);
       }
     }
     return Promise.resolve(entityIds);
   }
 
-  private async retrieveAssetIds(workspaceId: string, systems: string[]): Promise<string[]> {
+  private async retrieveAssetIds(workspaceId: string, systems: string[], operator: SystemFilterOperator): Promise<string[]> {
     let conditions: string[] = [];
     if (workspaceId) {
       conditions.push(`workspace = "${workspaceId}"`);
     }
-    if (systems.length) {
-      const systemsCondition = systems.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`);
-      conditions.push(`(${systemsCondition.join(' or ')})`);
+    const systemCondition = this.buildSystemFilterCondition(systems, operator);
+    if (systemCondition) {
+      conditions.push(systemCondition);
     }
     const assetFilter = conditions.join(' and ');
     const assetsResponse = await this.queryAssets(assetFilter, 10);
@@ -297,12 +298,14 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     }
   }
 
-  async metricFindQuery({ minionIds, workspace }: AssetMetadataQuery): Promise<MetricFindValue[]> {
+  async metricFindQuery({ minionIds, workspace, systemOperator }: AssetMetadataQuery): Promise<MetricFindValue[]> {
     const conditions = [];
     if (minionIds?.length) {
       minionIds = replaceVariables(minionIds, this.templateSrv);
-      const systemsCondition = minionIds.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`);
-      conditions.push(`(${systemsCondition.join(' or ')})`);
+      const systemCondition = this.buildSystemFilterCondition(minionIds, systemOperator);
+      if (systemCondition) {
+        conditions.push(systemCondition);
+      }
     }
     workspace = this.templateSrv.replace(workspace);
     if (workspace) {
@@ -311,6 +314,23 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     const assetFilter = conditions.join(' and ');
     const assetsResponse: AssetModel[] = await this.queryAssets(assetFilter, 1000);
     return assetsResponse.map((asset: AssetModel) => ({ text: asset.name, value: asset.id }));
+  }
+
+  private buildSystemFilterCondition(minionIds: string[], operator: SystemFilterOperator): string {
+    if (!minionIds.length) {
+      return '';
+    }
+    const prop = AssetFilterProperties.LocationMinionId;
+    switch (operator) {
+      case SystemFilterOperator.EQUALS:
+        return `${prop} = "${minionIds[0]}"`;
+      case SystemFilterOperator.NOT_EQUALS:
+        return minionIds.map(id => `${prop} != "${id}"`).join(' and ');
+      case SystemFilterOperator.IN:
+      default:
+        const systemsCondition = minionIds.map(id => `${prop} = "${id}"`);
+        return `(${systemsCondition.join(' or ')})`;
+    }
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

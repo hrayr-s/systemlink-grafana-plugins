@@ -50,14 +50,14 @@ it('renders with query and updates', async () => {
   });
 
   // User selects system
-  await select(screen.getAllByRole('combobox')[2], '2', { container: document.body });
+  await select(screen.getAllByRole('combobox')[3], '2', { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ minionIds: ['2'] }));
   });
 
   // User adds another system
-  await select(screen.getAllByRole('combobox')[2], '$test_var', { container: document.body });
+  await select(screen.getAllByRole('combobox')[3], '${test_var}', { container: document.body });
   await waitFor(() => {
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ minionIds: ['2', '$test_var'] }));
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ minionIds: ['2', '${test_var}'] }));
   });
 });

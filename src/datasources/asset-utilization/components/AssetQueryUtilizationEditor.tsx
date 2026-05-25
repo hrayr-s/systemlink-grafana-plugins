@@ -3,7 +3,8 @@ import {
   AssetFilterProperties,
   AssetModel,
   AssetUtilizationQuery,
-  EntityType
+  EntityType,
+  SystemFilterOperator
 } from '../types';
 import { FloatingError, parseErrorMessage } from "../../../core/errors";
 import { RadioButtonGroup, InlineField, MultiSelect, Select } from '@grafana/ui';
@@ -11,6 +12,7 @@ import React, { useState } from 'react';
 import { isValidId } from '../../data-frame/utils';
 import {
   entityTypeOptions,
+  systemOperatorOptions,
 } from "../constants";
 import { replaceVariables, useWorkspaceOptions } from "../../../core/utils";
 import _ from "lodash";
@@ -86,6 +88,11 @@ export function QueryUtilizationEditor(props: Props) {
       common.handleQueryChange({ ...query, entityType: value }, true);
     }
   };
+  const handleSystemOperatorChange = (item: SelectableValue<SystemFilterOperator>): void => {
+    if (item.value && query.systemOperator !== item.value) {
+      common.handleQueryChange({ ...query, systemOperator: item.value }, true);
+    }
+  };
   const loadAssetIdOptions = (): Array<SelectableValue<string>> => {
     let options: SelectableValue[] = (assetIds.value ?? []).map((asset: AssetModel): SelectableValue<string> => ({
         'label': asset.name,
@@ -121,16 +128,24 @@ export function QueryUtilizationEditor(props: Props) {
       <InlineField label="System"
                    tooltip={tooltips.system[query.entityType]}
                    labelWidth={22}>
-        <MultiSelect
-          isClearable
-          allowCreateWhileLoading
-          options={common.loadMinionIdOptions(minionIds.value)}
-          isValidNewOption={isValidId}
-          onChange={handleMinionIdsChange}
-          placeholder="Select systems"
-          width={85}
-          value={query.minionIds.map(toOption)}
-        />
+        <>
+          <Select
+            options={systemOperatorOptions}
+            value={query.systemOperator ?? SystemFilterOperator.IN}
+            onChange={handleSystemOperatorChange}
+            width={10}
+          />
+          <MultiSelect
+            isClearable
+            allowCreateWhileLoading
+            options={common.loadMinionIdOptions(minionIds.value)}
+            isValidNewOption={isValidId}
+            onChange={handleMinionIdsChange}
+            placeholder="Select systems"
+            width={74}
+            value={query.minionIds.map(toOption)}
+          />
+        </>
       </InlineField>
       {query.entityType === EntityType.Asset && (
         <InlineField label="Asset Identifier"

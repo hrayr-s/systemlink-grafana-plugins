@@ -1,9 +1,16 @@
 import { DataQuery } from '@grafana/schema'
 
+export enum SystemFilterOperator {
+  IN = 'IN',
+  EQUALS = '=',
+  NOT_EQUALS = '!=',
+}
+
 export interface AssetMetadataQuery extends DataQuery {
   type: AssetQueryType,
   workspace: string,
-  minionIds: string[]
+  minionIds: string[],
+  systemOperator: SystemFilterOperator,
 }
 
 export interface AssetUtilizationQuery extends DataQuery {
@@ -12,6 +19,7 @@ export interface AssetUtilizationQuery extends DataQuery {
   entityType: EntityType
   assetIdentifiers: string[],
   minionIds: string[],
+  systemOperator: SystemFilterOperator,
 }
 
 export type AssetQuery = AssetMetadataQuery | AssetUtilizationQuery;

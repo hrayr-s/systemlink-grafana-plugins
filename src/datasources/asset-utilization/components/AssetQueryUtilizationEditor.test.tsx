@@ -25,7 +25,7 @@ it('renders with query defaults', async () => {
 
   expect(screen.getByRole('radio', { name: 'Asset' })).toBeChecked();
   expect(screen.getAllByRole('combobox')[0]).toHaveAccessibleDescription('Any workspace');
-  expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Select systems');
+  expect(screen.getAllByRole('combobox')[2]).toHaveAccessibleDescription('Select systems');
 })
 
 it('renders with query different than defaults', async () => {
