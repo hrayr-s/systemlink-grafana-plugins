@@ -203,6 +203,26 @@ export interface QueryAssetUtilizationHistoryRequest {
   orderByDescending?: boolean
 }
 
+export interface UtilizationTimeInterval {
+  startDate: string,
+  endDate: string
+}
+
+export interface QuerySystemUtilizationRequest {
+  utilizationFilter?: string,
+  assetFilter?: string,
+  utilizationIntervals: UtilizationTimeInterval[]
+}
+
+export interface SystemUtilizationResponse {
+  startTimestamp: string,
+  endTimestamp: string,
+  minionId: string,
+  systemName?: string,
+  category?: string,
+  percentage: number
+}
+
 export enum AssetUtilizationOrderBy {
   UTILIZATION_IDENTIFIER = 'UTILIZATION_IDENTIFIER',
   ASSET_IDENTIFIER = 'ASSET_IDENTIFIER',

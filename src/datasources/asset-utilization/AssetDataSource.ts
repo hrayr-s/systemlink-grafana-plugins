@@ -19,7 +19,9 @@ import {
   AssetUtilizationOrderBy,
   AssetUtilizationQuery,
   EntityType, TimeSeriesUtilization, TimeSeriesUtilizationWithAlias,
-  QueryAssetUtilizationHistoryRequest, ServicePolicyModel, SystemFilterOperator, TimestampedUtilization,
+  QueryAssetUtilizationHistoryRequest, QuerySystemUtilizationRequest,
+  ServicePolicyModel, SystemFilterOperator, SystemUtilizationResponse,
+  TimestampedUtilization, UtilizationTimeInterval,
 } from './types';
 import { getWorkspaceName, replaceVariables } from "../../core/utils";
 import { SystemProperties } from "../system/types";
@@ -115,9 +117,72 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
 
   private async fetchAndProcessUtilizationData(query: AssetUtilizationQuery, options: DataQueryRequest, workspaceId: string): Promise<TimeSeriesUtilization[]> {
     const [from, to] = [options.range.from.valueOf(), options.range.to.valueOf()];
-    const workingHoursPolicy = await this.getServicePolicy();
     let entityIds = await this.getEntityIds(query, workspaceId, options.scopedVars);
+
+    if (query.entityType === EntityType.System) {
+      return await this.processSystemUtilization(entityIds, from, to);
+    }
+
+    const workingHoursPolicy = await this.getServicePolicy();
     return await this.processEntities(entityIds, query, from, to, workingHoursPolicy, options);
+  }
+
+  private async processSystemUtilization(minionIds: string[], from: number, to: number): Promise<TimeSeriesUtilization[]> {
+    const utilizationIntervals = this.buildDailyIntervals(from, to);
+    const utilizationFilter = minionIds.map(id => `MinionId = "${id}"`).join(' or ');
+    const request: QuerySystemUtilizationRequest = {
+      utilizationFilter: minionIds.length ? utilizationFilter : undefined,
+      utilizationIntervals,
+    };
+
+    const response = await this.fetchSystemUtilization(request);
+    return this.mapSystemUtilizationResponse(response, minionIds);
+  }
+
+  private buildDailyIntervals(from: number, to: number): UtilizationTimeInterval[] {
+    const intervals: UtilizationTimeInterval[] = [];
+    const startDate = new Date(from);
+    startDate.setUTCHours(0, 0, 0, 0);
+    const endDate = new Date(to);
+
+    let current = new Date(startDate);
+    while (current < endDate) {
+      const next = new Date(current);
+      next.setUTCDate(next.getUTCDate() + 1);
+      intervals.push({
+        startDate: current.toISOString(),
+        endDate: (next < endDate ? next : endDate).toISOString(),
+      });
+      current = next;
+    }
+    return intervals;
+  }
+
+  private mapSystemUtilizationResponse(response: SystemUtilizationResponse[], minionIds: string[]): TimeSeriesUtilization[] {
+    const grouped = new Map<string, { datetimes: number[], values: number[] }>();
+
+    for (const item of response) {
+      if (!grouped.has(item.minionId)) {
+        grouped.set(item.minionId, { datetimes: [], values: [] });
+      }
+      const entry = grouped.get(item.minionId)!;
+      entry.datetimes.push(new Date(item.startTimestamp).getTime());
+      entry.values.push(item.percentage);
+    }
+
+    return Array.from(grouped.entries()).map(([minionId, data]) => ({
+      id: minionId,
+      datetimes: data.datetimes,
+      values: data.values,
+    }));
+  }
+
+  private async fetchSystemUtilization(request: QuerySystemUtilizationRequest): Promise<SystemUtilizationResponse[]> {
+    try {
+      return await this.post<SystemUtilizationResponse[]>(this.baseUrl + '/query-system-utilization', request);
+    } catch (error) {
+      throw new Error(`Error retrieving system utilization: ${error}`);
+    }
   }
 
   private async getEntityIds(query: AssetUtilizationQuery, workspaceId: string, scopedVars?: Record<string, any>): Promise<string[]> {

@@ -15,8 +15,10 @@ import {
   AssetUtilizationQuery,
   AssetUtilizationTiming,
   EntityType,
+  SystemFilterOperator,
 } from "./types";
 import { dateTime } from "@grafana/data";
+import { firstValueFrom } from "rxjs";
 import { assetUtilizationHistoryFactory } from "./utils";
 import { defaultProjection } from "./constants";
 
@@ -169,13 +171,15 @@ const assetMetadataQueryMock: AssetMetadataQuery = {
   type: AssetQueryType.Metadata,
   workspace: '',
   refId: '',
-  minionIds: ['123']
+  minionIds: ['123'],
+  systemOperator: SystemFilterOperator.IN,
 }
 
 const buildMetadataQuery = getQueryBuilder<AssetMetadataQuery>()({
   type: AssetQueryType.Metadata,
   workspace: '',
   minionIds: [],
+  systemOperator: SystemFilterOperator.IN,
 });
 
 const utilizationHistoryMock: AssetUtilizationTiming[] = [
@@ -949,12 +953,37 @@ const policyQueryMockGTM4WholeDay = {
   }
 }
 
+const systemUtilizationResponseMock = [
+  {
+    startTimestamp: '2023-12-11T00:00:00.000Z',
+    endTimestamp: '2023-12-12T00:00:00.000Z',
+    minionId: 'System_Product_Name--SN-System_Serial_Number--MAC-50-EB-F6-B5-9D-5A',
+    systemName: 'PXIe Alias',
+    percentage: 15.5
+  },
+  {
+    startTimestamp: '2023-12-12T00:00:00.000Z',
+    endTimestamp: '2023-12-13T00:00:00.000Z',
+    minionId: 'System_Product_Name--SN-System_Serial_Number--MAC-50-EB-F6-B5-9D-5A',
+    systemName: 'PXIe Alias',
+    percentage: 22.3
+  },
+  {
+    startTimestamp: '2023-12-18T00:00:00.000Z',
+    endTimestamp: '2023-12-19T00:00:00.000Z',
+    minionId: 'System_Product_Name--SN-System_Serial_Number--MAC-50-EB-F6-B5-9D-5A',
+    systemName: 'PXIe Alias',
+    percentage: 8.7
+  }
+];
+
 
 const buildUtilizationQuery = getQueryBuilder<AssetUtilizationQuery>()({
   type: AssetQueryType.Utilization,
   workspace: '',
   assetIdentifiers: [],
   minionIds: [],
+  systemOperator: SystemFilterOperator.IN,
 }, {
   range: {
     from: dateTime(new Date('2023-12-10T00:00:00.000Z')),
@@ -992,7 +1021,7 @@ describe('query', () => {
       backendSrv.fetch
         .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
         .mockReturnValue(createFetchResponse(assetsResponseMock as AssetsResponse))
-      const result = await ds.query(buildMetadataQuery(assetMetadataQueryMock))
+      const result = await firstValueFrom(ds.query(buildMetadataQuery(assetMetadataQueryMock)))
 
       expect(result.data).toMatchSnapshot()
     })
@@ -1002,7 +1031,7 @@ describe('query', () => {
         .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
         .mockReturnValue(createFetchError(418))
 
-      await expect(ds.query(buildMetadataQuery(assetMetadataQueryMock))).rejects.toThrow()
+      await expect(firstValueFrom(ds.query(buildMetadataQuery(assetMetadataQueryMock)))).rejects.toThrow()
     })
 
   })
@@ -1041,7 +1070,7 @@ describe('query', () => {
           }
         }))
         .mockReturnValue(createFetchResponse(queryAssetsResponseMock1))
-      const result = await ds.query(queryRequest)
+      const result = await firstValueFrom(ds.query(queryRequest))
 
       expect(result.data).toMatchSnapshot();
     })
@@ -1079,7 +1108,7 @@ describe('query', () => {
           }
         }))
         .mockReturnValue(createFetchResponse(queryAssetsResponseMock2))
-      const result = await ds.query(queryRequest)
+      const result = await firstValueFrom(ds.query(queryRequest))
 
       expect(result.data).toMatchSnapshot();
     })
@@ -1117,7 +1146,7 @@ describe('query', () => {
           }
         }))
         .mockReturnValue(createFetchResponse(queryAssetsResponseMock1))
-      const result = await ds.query(queryRequest)
+      const result = await firstValueFrom(ds.query(queryRequest))
 
       expect(result.data).toMatchSnapshot();
     })
@@ -1131,21 +1160,9 @@ describe('query', () => {
       })
       backendSrv.fetch
         .calledWith(requestMatching({
-          url: '/niapm/v1/policy',
+          url: '/niapm/v1/query-system-utilization',
         }))
-        .mockReturnValue(createFetchResponse(policyQueryMockGTM4WholeDay))
-      backendSrv.fetch
-        .calledWith(requestMatching({
-          url: '/niapm/v1/query-asset-utilization-history',
-          data: {
-            utilizationFilter: '',
-            continuationToken: '',
-            orderBy: 'START_TIMESTAMP',
-            orderByDescending: true,
-            assetFilter: 'Location.MinionId = "System_Product_Name--SN-System_Serial_Number--MAC-50-EB-F6-B5-9D-5A" and IsSystemController = true'
-          }
-        }))
-        .mockReturnValue(createFetchResponse(assetUtilizationHistoryFactory(sysControllerUtilizationHistoryMock)))
+        .mockReturnValue(createFetchResponse(systemUtilizationResponseMock))
       backendSrv.fetch
         .calledWith(requestMatching({
           url: '/nisysmgmt/v1/query-systems',
@@ -1156,7 +1173,7 @@ describe('query', () => {
           }
         }))
         .mockReturnValue(createFetchResponse(querySystemsResponseMock))
-      const result = await ds.query(queryRequest)
+      const result = await firstValueFrom(ds.query(queryRequest))
 
       expect(result.data).toMatchSnapshot();
     })

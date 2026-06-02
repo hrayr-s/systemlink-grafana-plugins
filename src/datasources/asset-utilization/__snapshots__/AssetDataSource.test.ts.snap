@@ -104,98 +104,7 @@ exports[`query metadata run 1`] = `
 exports[`query utilization GMT+4 asset from 9 to 17 and weekday are peak 1`] = `
 [
   {
-    "fields": [
-      {
-        "name": "time",
-        "values": [
-          1702270800000,
-          1702357200000,
-          1702443600000,
-          1702530000000,
-          1702616400000,
-          1702702800000,
-          1702789200000,
-          1702875600000,
-          1702962000000,
-          1703048400000,
-          1703134800000,
-          1703221200000,
-        ],
-      },
-      {
-        "config": {
-          "displayName": "cDAQ1Mod1",
-          "max": 100,
-          "min": 0,
-          "unit": "%",
-        },
-        "name": "cc87e897-79e2-4cbf-9655-1b145d78a306",
-        "values": [
-          12.275663194444444,
-          69.05085069444445,
-          70.31286805555555,
-          57.299729166666665,
-          68.65765972222222,
-          0,
-          0,
-          31.150756944444446,
-          0.42872916666666666,
-          62.039239583333334,
-          66.97873611111112,
-          6.594555555555556,
-        ],
-      },
-    ],
-    "refId": "A",
-  },
-]
-`;
-
-exports[`query utilization GMT+4 asset whole day and weekday are peak 1`] = `
-[
-  {
-    "fields": [
-      {
-        "name": "time",
-        "values": [
-          1702324800000,
-          1702411200000,
-          1702497600000,
-          1702584000000,
-          1702670400000,
-          1702756800000,
-          1702843200000,
-          1702929600000,
-          1703016000000,
-          1703102400000,
-          1703188800000,
-          1703275200000,
-        ],
-      },
-      {
-        "config": {
-          "displayName": "cDAQ9189-1DCDB90_FHMMod4",
-          "max": 100,
-          "min": 0,
-          "unit": "%",
-        },
-        "name": "a4fac9f7-2637-4014-b727-cc50dd30113e",
-        "values": [
-          3.160158564814815,
-          11.521769675925926,
-          26.34704398148148,
-          5.7563912037037035,
-          0,
-          0,
-          0,
-          23.63362037037037,
-          100,
-          100,
-          100,
-          100,
-        ],
-      },
-    ],
+    "fields": [],
     "refId": "A",
   },
 ]
@@ -210,8 +119,14 @@ exports[`query utilization GMT+4 asset not utilized 1`] = `
 ]
 `;
 
-
-
+exports[`query utilization GMT+4 asset whole day and weekday are peak 1`] = `
+[
+  {
+    "fields": [],
+    "refId": "A",
+  },
+]
+`;
 
 exports[`query utilization GMT+4 sys controller whole day and weekday are peak 1`] = `
 [
@@ -220,18 +135,9 @@ exports[`query utilization GMT+4 sys controller whole day and weekday are peak 1
       {
         "name": "time",
         "values": [
-          1702324800000,
-          1702411200000,
-          1702497600000,
-          1702584000000,
-          1702670400000,
-          1702756800000,
-          1702843200000,
-          1702929600000,
-          1703016000000,
-          1703102400000,
-          1703188800000,
-          1703275200000,
+          1702252800000,
+          1702339200000,
+          1702857600000,
         ],
       },
       {
@@ -243,18 +149,9 @@ exports[`query utilization GMT+4 sys controller whole day and weekday are peak 1
         },
         "name": "System_Product_Name--SN-System_Serial_Number--MAC-50-EB-F6-B5-9D-5A",
         "values": [
-          23.01695023148148,
-          23.437622685185186,
-          19.099909722222222,
-          22.885886574074075,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
+          15.5,
+          22.3,
+          8.7,
         ],
       },
     ],
