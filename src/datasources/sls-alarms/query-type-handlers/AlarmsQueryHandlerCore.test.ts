@@ -231,32 +231,32 @@ describe('AlarmsQueryHandlerCore', () => {
           {
             name: 'source equals',
             input: 'source = "test-source"',
-            expected: '(properties.system = "test-source" || properties.minionId = "test-source")',
+            expected: 'properties.minionId = "test-source"',
           },
           {
             name: 'source does not equal',
             input: 'source != "test-source"',
-            expected: '(properties.system != "test-source" && properties.minionId != "test-source")',
+            expected: 'properties.minionId != "test-source"',
           },
           {
             name: 'source is blank',
             input: 'string.IsNullOrEmpty(source)',
-            expected: '(string.IsNullOrEmpty(properties.system) && string.IsNullOrEmpty(properties.minionId))',
+            expected: 'string.IsNullOrEmpty(properties.minionId)',
           },
           {
             name: 'source is not blank',
             input: '!string.IsNullOrEmpty(source)',
-            expected: '(!string.IsNullOrEmpty(properties.system) || !string.IsNullOrEmpty(properties.minionId))',
+            expected: '!string.IsNullOrEmpty(properties.minionId)',
           },
           {
             name: 'source contains',
             input: 'source.Contains("test-source")',
-            expected: '(properties.system.Contains("test-source") || properties.minionId.Contains("test-source"))',
+            expected: 'properties.minionId.Contains("test-source")',
           },
           {
             name: 'source does not contain',
             input: '!(source.Contains("test-source"))',
-            expected: '(!(properties.system.Contains("test-source")) && !(properties.minionId.Contains("test-source")))',
+            expected: '!(properties.minionId.Contains("test-source"))',
           },
         ].forEach(({ name, input, expected }) => {
           it(`should transform ${name} filter`, () => {
@@ -272,14 +272,14 @@ describe('AlarmsQueryHandlerCore', () => {
             input: 'source = "${query0}"',
             replacedInput: 'source = "{source1,source2}"',
             expected:
-              '((properties.system = "source1" || properties.system = "source2") || (properties.minionId = "source1" || properties.minionId = "source2"))',
+              '(properties.minionId = "source1" || properties.minionId = "source2")',
           },
           {
             name: 'source does not equal',
             input: 'source != "${query0}"',
             replacedInput: 'source != "{source1,source2}"',
             expected:
-              '((properties.system != "source1" && properties.system != "source2") && (properties.minionId != "source1" && properties.minionId != "source2"))',
+              '(properties.minionId != "source1" && properties.minionId != "source2")',
           },
         ].forEach(({ name, input, replacedInput, expected }) => {
           it(`should transform ${name} for mutiple value variable filter`, () => {
@@ -299,7 +299,7 @@ describe('AlarmsQueryHandlerCore', () => {
           const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockQueryBy);
 
           expect(datastore.templateSrv.replace).toHaveBeenCalledWith('source != "${query0}"', {});
-          expect(transformQuery).toBe('(properties.system != "test-source" && properties.minionId != "test-source")');
+          expect(transformQuery).toBe('properties.minionId != "test-source"');
         });
 
         it('should handle transformation for multiple source filters in a query', () => {
@@ -308,7 +308,7 @@ describe('AlarmsQueryHandlerCore', () => {
           const result = datastore.transformAlarmsQueryWrapper({}, mockFilter);
 
           expect(result).toBe(
-            '(properties.system = "source1" || properties.minionId = "source1") || (string.IsNullOrEmpty(properties.system) && string.IsNullOrEmpty(properties.minionId))'
+            'properties.minionId = "source1" || string.IsNullOrEmpty(properties.minionId)'
           );
         });
       });
