@@ -84,8 +84,38 @@ function applyCondition(condition: string, subQuery: SubQuery): boolean {
     tryParseKeywords(condition, subQuery) ||
     tryParseProperties(condition, subQuery) ||
     tryParseDotNotationProperties(condition, subQuery) ||
-    tryParseWorkspace(condition, subQuery)
+    tryParseWorkspace(condition, subQuery) ||
+    tryParseCompoundGroup(condition, subQuery)
   );
+}
+
+// Handles compound groups (OR/AND) produced by multi-value variables or source field transformations
+// e.g. "channel = \"ch1\" || channel = \"ch2\"" or "properties.System = \"X\" || properties.MinionId = \"X\""
+// e.g. "channel != \"ch1\" && channel != \"ch2\""
+function tryParseCompoundGroup(condition: string, subQuery: SubQuery): boolean {
+  for (const delimiter of ['||', '&&']) {
+    const parts = splitAtTopLevel(condition, delimiter);
+    if (parts.length <= 1) {
+      continue;
+    }
+
+    let allParsed = true;
+    for (const part of parts) {
+      const trimmed = part.trim();
+      if (!trimmed) {
+        continue;
+      }
+      if (!applyCondition(trimmed, subQuery)) {
+        allParsed = false;
+        break;
+      }
+    }
+
+    if (allParsed) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // field = "value"
@@ -188,9 +218,9 @@ function tryParseDateComparison(condition: string, subQuery: SubQuery): boolean 
   }
 }
 
-// currentSeverityLevel = "2" or highestSeverityLevel = "3"
+// currentSeverityLevel = "2" or highestSeverityLevel = "3" or currentSeverityLevel = "-1" (clear)
 function tryParseSeverityEquality(condition: string, subQuery: SubQuery): boolean {
-  const match = condition.match(/^(currentSeverityLevel|highestSeverityLevel)\s*=\s*"(\d+)"$/);
+  const match = condition.match(/^(currentSeverityLevel|highestSeverityLevel)\s*=\s*"(-?\d+)"$/);
   if (!match) {
     return false;
   }
@@ -210,7 +240,7 @@ function tryParseSeverityEquality(condition: string, subQuery: SubQuery): boolea
 
 // currentSeverityLevel >= "4" (critical) or currentSeverityLevel < "4" (not critical)
 function tryParseSeverityRange(condition: string, subQuery: SubQuery): boolean {
-  const match = condition.match(/^(currentSeverityLevel|highestSeverityLevel)\s*(>=|<=|>|<)\s*"(\d+)"$/);
+  const match = condition.match(/^(currentSeverityLevel|highestSeverityLevel)\s*(>=|<=|>|<)\s*"(-?\d+)"$/);
   if (!match) {
     return false;
   }

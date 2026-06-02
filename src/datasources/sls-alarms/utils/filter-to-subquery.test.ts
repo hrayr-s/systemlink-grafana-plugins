@@ -133,6 +133,22 @@ describe('parseFilterToSubQuery', () => {
       });
     });
 
+    it('should parse currentSeverityLevel equality for clear (-1)', () => {
+      const result = parseFilterToSubQuery('currentSeverityLevel = "-1"');
+      expect(result.subQuery).toEqual({
+        currentSeverityLevelMin: -1,
+        currentSeverityLevelMax: -1,
+      });
+    });
+
+    it('should parse highestSeverityLevel equality for clear (-1)', () => {
+      const result = parseFilterToSubQuery('highestSeverityLevel = "-1"');
+      expect(result.subQuery).toEqual({
+        highestSeverityLevelMin: -1,
+        highestSeverityLevelMax: -1,
+      });
+    });
+
     it('should parse currentSeverityLevel >= (critical)', () => {
       const result = parseFilterToSubQuery('currentSeverityLevel >= "4"');
       expect(result.subQuery).toEqual({ currentSeverityLevelMin: 4 });
@@ -319,6 +335,40 @@ describe('parseFilterToSubQuery', () => {
     it('should mark arbitrary text as unsupported', () => {
       const result = parseFilterToSubQuery('some arbitrary filter text');
       expect(result.unsupported).toEqual(['some arbitrary filter text']);
+    });
+  });
+
+  describe('compound groups (multi-value and source transformations)', () => {
+    it('should parse OR group from multi-value variable', () => {
+      const result = parseFilterToSubQuery('(channel = "ch1" || channel = "ch2")');
+      expect(result.subQuery.channel).toBe('ch2');
+      expect(result.unsupported).toEqual([]);
+    });
+
+    it('should parse source field OR group with dot-notation properties', () => {
+      const result = parseFilterToSubQuery('(properties.System = "CRIO1" || properties.MinionId = "CRIO1")');
+      expect(result.subQuery.properties).toEqual({ System: 'CRIO1', MinionId: 'CRIO1' });
+      expect(result.unsupported).toEqual([]);
+    });
+
+    it('should parse AND group from multi-value NOT EQUALS', () => {
+      const result = parseFilterToSubQuery('(active != "true" && clear != "true")');
+      expect(result.subQuery.active).toBe(false);
+      expect(result.subQuery.clear).toBe(false);
+      expect(result.unsupported).toEqual([]);
+    });
+
+    it('should parse compound group combined with other conditions', () => {
+      const result = parseFilterToSubQuery('active = "true" && (properties.System = "X" || properties.MinionId = "X")');
+      expect(result.subQuery.active).toBe(true);
+      expect(result.subQuery.properties).toEqual({ System: 'X', MinionId: 'X' });
+      expect(result.unsupported).toEqual([]);
+    });
+
+    it('should parse multiple workspace OR group', () => {
+      const result = parseFilterToSubQuery('(workspace = "ws1" || workspace = "ws2")');
+      expect(result.subQuery.workspaces).toEqual(['ws1', 'ws2']);
+      expect(result.unsupported).toEqual([]);
     });
   });
 });
