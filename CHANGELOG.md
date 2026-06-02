@@ -1,3 +1,9 @@
+## [5.0.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.0.0...v5.0.1) (2026-06-02)
+
+### Bug Fixes
+
+* **dataframe:** Remove highResolutionZoom feature flag ([#729](https://github.com/ni/systemlink-grafana-plugins/issues/729)) ([6dd8290](https://github.com/ni/systemlink-grafana-plugins/commit/6dd8290a6079e20a917f3d6a60ba9b3cce156cee))
+
 ## [5.0.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.149.3...v5.0.0) (2026-05-25)
 
 ### ⚠ BREAKING CHANGES
