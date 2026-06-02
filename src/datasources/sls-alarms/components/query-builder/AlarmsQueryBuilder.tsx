@@ -28,11 +28,13 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
   );
 
   const timeFields = useMemo(() => {
+    // Only `acknowledgedAt` and `occurredAt` are queryable date fields per the
+    // query-instances API schema. `mostRecentSetOccurredAt` and
+    // `mostRecentTransitionOccurredAt` have no SubQuery equivalent, so they are
+    // intentionally excluded as filter fields (they remain valid output columns).
     return [
       addOptionsToLookup(AlarmsQueryBuilderFields.ACKNOWLEDGED_ON, TIME_OPTIONS),
       addOptionsToLookup(AlarmsQueryBuilderFields.FIRST_OCCURRENCE, TIME_OPTIONS),
-      addOptionsToLookup(AlarmsQueryBuilderFields.LAST_TRANSITION_OCCURRENCE, TIME_OPTIONS),
-      addOptionsToLookup(AlarmsQueryBuilderFields.LAST_OCCURRENCE, TIME_OPTIONS),
     ];
   }, []);
 
@@ -75,15 +77,10 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
       QueryBuilderOperations.EQUALS,
       QueryBuilderOperations.DOES_NOT_EQUAL,
       QueryBuilderOperations.CONTAINS,
-      QueryBuilderOperations.DOES_NOT_CONTAIN,
-      QueryBuilderOperations.IS_BLANK,
-      QueryBuilderOperations.IS_NOT_BLANK,
       QueryBuilderOperations.DATE_TIME_IS_BEFORE,
       QueryBuilderOperations.DATE_TIME_IS_AFTER,
       QueryBuilderOperations.LIST_EQUALS,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL,
       QueryBuilderOperations.LIST_CONTAINS,
-      QueryBuilderOperations.LIST_DOES_NOT_CONTAIN,
     ].map(operation => {
       return {
         ...operation,
@@ -93,9 +90,6 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
 
     const keyValueOperations = [
       QueryBuilderOperations.KEY_VALUE_MATCH,
-      QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH,
-      QueryBuilderOperations.KEY_VALUE_CONTAINS,
-      QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS,
     ];
 
     setOperations([...customOperations, ...keyValueOperations]);

@@ -2,27 +2,41 @@ import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from 'core/types';
 import { AlarmsSpecificProperties } from '../types/ListAlarms.types';
 
+// Boolean fields (active, clear, acknowledged) — the parser maps both equality
+// and negation to the corresponding SubQuery boolean.
 const BOOLEAN_FILTER_OPERATIONS = [
-  QueryBuilderOperations.EQUALS.name, 
-  QueryBuilderOperations.DOES_NOT_EQUAL.name
-];
-
-const BASIC_STRING_FILTER_OPERATIONS = [
   QueryBuilderOperations.EQUALS.name,
   QueryBuilderOperations.DOES_NOT_EQUAL.name,
-  QueryBuilderOperations.CONTAINS.name,
-  QueryBuilderOperations.DOES_NOT_CONTAIN.name,
 ];
 
-const EXTENDED_STRING_FILTER_OPERATIONS = [
-  ...BASIC_STRING_FILTER_OPERATIONS,
-  QueryBuilderOperations.IS_BLANK.name,
-  QueryBuilderOperations.IS_NOT_BLANK.name,
+// Fields the query-instances API matches by exact value only. Other operators
+// (negation, contains, blank checks) have no SubQuery equivalent and would be
+// silently dropped, so they are intentionally omitted.
+const EQUALITY_FILTER_OPERATIONS = [
+  QueryBuilderOperations.EQUALS.name,
+];
+
+// Text fields the API matches by substring (displayName, description). Both the
+// equality and contains expressions resolve to the same SubQuery field.
+const CONTAINS_FILTER_OPERATIONS = [
+  QueryBuilderOperations.EQUALS.name,
+  QueryBuilderOperations.CONTAINS.name,
 ];
 
 const DATE_TIME_FILTER_OPERATIONS = [
   QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
   QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
+];
+
+// Keyword list field — the API supports inclusion checks only.
+const KEYWORD_FILTER_OPERATIONS = [
+  QueryBuilderOperations.LIST_EQUALS.name,
+  QueryBuilderOperations.LIST_CONTAINS.name,
+];
+
+// Properties — the API matches exact key/value pairs only.
+const PROPERTIES_FILTER_OPERATIONS = [
+  QueryBuilderOperations.KEY_VALUE_MATCH.name,
 ];
 
 export const SEVERITY_LEVELS = [
@@ -69,17 +83,17 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   ALARM_ID: {
     label: 'Alarm ID',
     dataField: AlarmsSpecificProperties.alarmId,
-    filterOperations: BASIC_STRING_FILTER_OPERATIONS,
+    filterOperations: EQUALITY_FILTER_OPERATIONS,
   },
   ALARM_NAME: {
     label: 'Alarm name',
     dataField: AlarmsSpecificProperties.displayName,
-    filterOperations: EXTENDED_STRING_FILTER_OPERATIONS,
+    filterOperations: CONTAINS_FILTER_OPERATIONS,
   },
   CHANNEL: {
     label: 'Channel',
     dataField: AlarmsSpecificProperties.channel,
-    filterOperations: EXTENDED_STRING_FILTER_OPERATIONS,
+    filterOperations: EQUALITY_FILTER_OPERATIONS,
   },
   CLEAR: {
     label: 'Clear',
@@ -92,12 +106,12 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   CREATED_BY: {
     label: 'Created by',
     dataField: AlarmsSpecificProperties.createdBy,
-    filterOperations: EXTENDED_STRING_FILTER_OPERATIONS,
+    filterOperations: EQUALITY_FILTER_OPERATIONS,
   },
   CURRENT_SEVERITY: {
     label: 'Current severity',
     dataField: AlarmsSpecificProperties.currentSeverityLevel,
-    filterOperations: BOOLEAN_FILTER_OPERATIONS,
+    filterOperations: EQUALITY_FILTER_OPERATIONS,
     lookup: {
         dataSource: SEVERITY_LEVELS,
     },
@@ -105,7 +119,7 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   DESCRIPTION: {
     label: 'Description',
     dataField: AlarmsSpecificProperties.description,
-    filterOperations: EXTENDED_STRING_FILTER_OPERATIONS,
+    filterOperations: CONTAINS_FILTER_OPERATIONS,
   },
   FIRST_OCCURRENCE: {
     label: 'First occurrence',
@@ -115,7 +129,7 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   HIGHEST_SEVERITY: {
     label: 'Highest severity',
     dataField: AlarmsSpecificProperties.highestSeverityLevel,
-    filterOperations: BOOLEAN_FILTER_OPERATIONS,
+    filterOperations: EQUALITY_FILTER_OPERATIONS,
     lookup: {
       dataSource: SEVERITY_LEVELS,
     },
@@ -123,48 +137,28 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   KEYWORD: {
     label: 'Keyword',
     dataField: AlarmsSpecificProperties.keywords,
-    filterOperations: [
-      QueryBuilderOperations.LIST_EQUALS.name,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.LIST_CONTAINS.name,
-      QueryBuilderOperations.LIST_DOES_NOT_CONTAIN.name,
-    ],
-  },
-  LAST_TRANSITION_OCCURRENCE: {
-    label: 'Last transition occurrence',
-    dataField: AlarmsSpecificProperties.mostRecentTransitionOccurredAt,
-    filterOperations: DATE_TIME_FILTER_OPERATIONS,
-  },
-  LAST_OCCURRENCE: {
-    label: 'Last occurrence',
-    dataField: AlarmsSpecificProperties.mostRecentSetOccurredAt,
-    filterOperations: DATE_TIME_FILTER_OPERATIONS,
+    filterOperations: KEYWORD_FILTER_OPERATIONS,
   },
   PROPERTIES: {
     label: 'Properties',
     dataField: AlarmsSpecificProperties.properties,
     dataType: 'object',
-    filterOperations: [
-      QueryBuilderOperations.KEY_VALUE_MATCH.name,
-      QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH.name,
-      QueryBuilderOperations.KEY_VALUE_CONTAINS.name,
-      QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS.name,
-    ],
+    filterOperations: PROPERTIES_FILTER_OPERATIONS,
   },
   RESOURCE_TYPE: {
     label: 'Resource type',
     dataField: AlarmsSpecificProperties.resourceType,
-    filterOperations: BASIC_STRING_FILTER_OPERATIONS,
+    filterOperations: EQUALITY_FILTER_OPERATIONS,
   },
   SOURCE: {
     label: 'Source',
     dataField: AlarmsSpecificProperties.source,
-    filterOperations: EXTENDED_STRING_FILTER_OPERATIONS,
+    filterOperations: EQUALITY_FILTER_OPERATIONS,
   },
   WORKSPACE: {
     label: 'Workspace',
     dataField: AlarmsSpecificProperties.workspace,
-    filterOperations: BOOLEAN_FILTER_OPERATIONS,
+    filterOperations: EQUALITY_FILTER_OPERATIONS,
   }
 };
 

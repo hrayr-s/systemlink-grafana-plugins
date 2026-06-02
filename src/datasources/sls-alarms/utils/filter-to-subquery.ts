@@ -210,8 +210,9 @@ function tryParseDateComparison(condition: string, subQuery: SubQuery): boolean 
       return true;
     case 'mostRecentSetOccurredAt':
     case 'mostRecentTransitionOccurredAt':
-      // These fields are used in trend queries but don't have SubQuery equivalents.
-      // They're handled as passthrough — the caller builds subQueries for trend logic.
+      // The query-instances API schema has no SubQuery field for these dates, so
+      // they cannot be filtered on. They are valid output columns only. Any legacy
+      // saved filter referencing them is intentionally dropped here.
       return false;
     default:
       return false;
