@@ -1,5 +1,5 @@
 import { AlertVariant, ComboboxOption } from '@grafana/ui';
-import { AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ComputedAlarmProperty } from '../types/ListAlarms.types';
+import { AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ComputedAlarmProperty, SeverityLevelFormat } from '../types/ListAlarms.types';
 import { Alarm, AlarmTransition, QueryType, TransitionInclusionOption } from '../types/types';
 
 export const LABEL_WIDTH = 26;
@@ -13,6 +13,13 @@ export const QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL = 500;
 export const DEFAULT_QUERY_EDITOR_TAKE = 1000;
 export const DEFAULT_QUERY_EDITOR_DESCENDING = true;
 export const DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION = TransitionInclusionOption.None;
+export const DEFAULT_QUERY_EDITOR_SEVERITY_LEVEL_FORMAT = SeverityLevelFormat.NumericAndText;
+
+export const SEVERITY_LEVEL_PROPERTIES: readonly AlarmsProperties[] = [
+  AlarmsSpecificProperties.currentSeverityLevel,
+  AlarmsSpecificProperties.highestSeverityLevel,
+  AlarmsTransitionProperties.transitionSeverityLevel,
+];
 
 export const ALARMS_TIME_FIELDS = [
   AlarmsSpecificProperties.occurredAt,
@@ -32,6 +39,7 @@ export const labels = {
   take: 'Take',
   groupBySeverity: 'Group By Severity',
   transitionInclusion: 'Transitions',
+  severityLevelFormat: 'Severity format',
 };
 
 export const tooltips = {
@@ -43,6 +51,7 @@ export const tooltips = {
   take: 'This field specifies the maximum number of alarms to return.',
   groupBySeverity: 'This toggle groups alarm trends by severity.',
   transitionInclusion: 'This field specifies whether to include no transitions, only the most recent transitions, or all transitions in the alarm query.',
+  severityLevelFormat: 'This field specifies how severity level values are displayed in the results.',
 };
 
 export const queryTypeOptions: ComboboxOption[] = [
@@ -232,6 +241,21 @@ export const AlarmsTransitionInclusionOptions: Record<
     value: TransitionInclusionOption.All,
   },
 };
+
+export const SeverityLevelFormatOptions: Array<ComboboxOption<SeverityLevelFormat>> = [
+  {
+    label: 'Numeric value + text',
+    value: SeverityLevelFormat.NumericAndText,
+  },
+  {
+    label: 'Numeric value',
+    value: SeverityLevelFormat.Numeric,
+  },
+  {
+    label: 'Text',
+    value: SeverityLevelFormat.Text,
+  },
+];
 
 export const TRANSITION_SPECIFIC_PROPERTIES = Object.values(AlarmsTransitionProperties);
 

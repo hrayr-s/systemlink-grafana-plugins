@@ -7,6 +7,7 @@ export interface ListAlarmsQuery extends AlarmsQuery {
   descending?: boolean;
   take?: number;
   transitionInclusionOption?: TransitionInclusionOption;
+  severityLevelFormat?: SeverityLevelFormat;
 }
 
 export interface AlarmsQueryCache {
@@ -20,6 +21,12 @@ export const alarmsCacheTTL = 1000 * 60 * 5;
 export enum OutputType {
   Properties = 'Properties',
   TotalCount = 'Total Count',
+}
+
+export enum SeverityLevelFormat {
+  NumericAndText = 'Numeric value + text',
+  Numeric = 'Numeric value',
+  Text = 'Text',
 }
 
 export enum AlarmsSpecificProperties {

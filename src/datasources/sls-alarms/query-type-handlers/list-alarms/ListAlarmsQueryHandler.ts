@@ -1,8 +1,8 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
-import { AlarmsQueryCache, alarmsCacheTTL, AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from '../../types/ListAlarms.types';
+import { AlarmsQueryCache, alarmsCacheTTL, AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType, SeverityLevelFormat } from '../../types/ListAlarms.types';
 import { Alarm, AlarmsVariableQuery, OrderBy, QueryAlarmsRequest, SubQuery, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
-import { AlarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TransitionPropertyKeyMap, QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, TRANSITION_SPECIFIC_PROPERTIES } from '../../constants/AlarmsQueryEditor.constants';
+import { AlarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_SEVERITY_LEVEL_FORMAT, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, SEVERITY_LEVEL_PROPERTIES, TransitionPropertyKeyMap, QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, TRANSITION_SPECIFIC_PROPERTIES } from '../../constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from '../../constants/DefaultQueries.constants';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { User } from 'shared/types/QueryUsers.types';
@@ -104,7 +104,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
           ? this.duplicateAlarmsByTransitions(alarmsResponse)
           : alarmsResponse;
 
-      mappedFields = await this.mapPropertiesToSelect(query.properties, flattenedAlarms);
+      mappedFields = await this.mapPropertiesToSelect(query.properties, flattenedAlarms, query.severityLevelFormat);
     }
 
     return {
@@ -186,7 +186,8 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
 
   private async mapPropertiesToSelect(
     properties: AlarmsProperties[],
-    flattenedAlarms: Alarm[]
+    flattenedAlarms: Alarm[],
+    severityLevelFormat: SeverityLevelFormat = DEFAULT_QUERY_EDITOR_SEVERITY_LEVEL_FORMAT
   ): Promise<DataFrameDTO['fields']> {
     const workspaces = await this.loadWorkspaces();
     const users = await this.loadUsers();
@@ -195,7 +196,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const field = AlarmsPropertiesOptions[property];
       const fieldName = field.label;
       const fieldValue = field.value;
-      const fieldType = this.getFieldTypeForProperty(fieldValue);
+      const fieldType = this.getFieldTypeForProperty(fieldValue, severityLevelFormat);
 
       const fieldValues = flattenedAlarms.map(alarm => {
         const transition = alarm.transitions[0];
@@ -212,13 +213,13 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
             return this.getSortedCustomProperties(alarm.properties);
           case AlarmsSpecificProperties.highestSeverityLevel:
           case AlarmsSpecificProperties.currentSeverityLevel:
-            return this.getSeverityLabel(alarm[property]);
+            return this.getSeverityValue(alarm[property], severityLevelFormat);
           case AlarmsSpecificProperties.state:
             return this.getAlarmState(alarm.clear, alarm.acknowledged);
           case AlarmsSpecificProperties.source:
             return this.getSource(alarm.properties);
           case AlarmsTransitionProperties.transitionSeverityLevel:
-            return this.getSeverityLabel(transition.severityLevel);
+            return this.getSeverityValue(transition.severityLevel, severityLevelFormat);
           case AlarmsTransitionProperties.transitionProperties:
             return this.getSortedCustomProperties(transition.properties);
           default:
@@ -245,8 +246,10 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     return mappedFields;
   }
 
-  private getFieldTypeForProperty(field: AlarmsProperties): FieldType {
+  private getFieldTypeForProperty(field: AlarmsProperties, severityLevelFormat: SeverityLevelFormat): FieldType {
     switch (true) {
+      case this.isSeverityField(field):
+        return severityLevelFormat === SeverityLevelFormat.Numeric ? FieldType.number : FieldType.string;
       case this.isTimeField(field):
         return FieldType.time;
       case this.isNumberField(field):
@@ -259,6 +262,10 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       default:
         return FieldType.string;
     }
+  }
+
+  private isSeverityField(field: AlarmsProperties): boolean {
+    return SEVERITY_LEVEL_PROPERTIES.includes(field);
   }
 
   private isNumberField(field: AlarmsProperties): boolean {
@@ -313,21 +320,36 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     return sortedProperties;
   }
 
-  private getSeverityLabel(severityLevel: number): string {
+  private getSeverityValue(severityLevel: number, format: SeverityLevelFormat): string | number {
+    if (format === SeverityLevelFormat.Numeric) {
+      return severityLevel;
+    }
+
+    const severityText = this.getSeverityText(severityLevel);
+
+    if (format === SeverityLevelFormat.Text) {
+      return severityText;
+    }
+
+    if (severityText === '' || severityLevel === -1) {
+      return severityText;
+    }
+
+    return `${severityText} (${severityLevel})`;
+  }
+
+  private getSeverityText(severityLevel: number): string {
     switch (severityLevel) {
       case -1:
         return 'Clear';
       case 1:
-        return 'Low (1)';
+        return 'Low';
       case 2:
-        return 'Moderate (2)';
+        return 'Moderate';
       case 3:
-        return 'High (3)';
+        return 'High';
       default:
-        if (severityLevel >= 4) {
-          return `Critical (${severityLevel})`;
-        }
-        return '';
+        return severityLevel >= 4 ? 'Critical' : '';
     }
   }
  

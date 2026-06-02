@@ -15,12 +15,14 @@ import {
   QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL,
   SECONDARY_CONTROL_WIDTH,
   SECONDARY_LABEL_WIDTH,
+  SEVERITY_LEVEL_PROPERTIES,
+  SeverityLevelFormatOptions,
   takeErrorMessages,
   tooltips,
 } from '../../../constants/AlarmsQueryEditor.constants';
 import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
-import { AlarmsProperties, ListAlarmsQuery, OutputType } from '../../../types/ListAlarms.types';
+import { AlarmsProperties, ListAlarmsQuery, OutputType, SeverityLevelFormat } from '../../../types/ListAlarms.types';
 import { ListAlarmsQueryHandler } from '../../../query-type-handlers/list-alarms/ListAlarmsQueryHandler';
 import { AutoSizeInput, Combobox, ComboboxOption, InlineSwitch, MultiCombobox, RadioButtonGroup, Stack } from '@grafana/ui';
 import { validateNumericInput } from 'core/utils';
@@ -117,6 +119,15 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
   const onOutputTypeChange = (outputType: OutputType) => {
     handleQueryChange({ ...query, outputType });
   };
+
+  const onSeverityLevelFormatChange = (severityLevelFormat: SeverityLevelFormat) => {
+    handleQueryChange({ ...query, severityLevelFormat });
+  };
+
+  const isSeverityPropertySelected = useMemo(
+    () => (query.properties || []).some(property => SEVERITY_LEVEL_PROPERTIES.includes(property)),
+    [query.properties]
+  );
 
   const propertiesOptions = useMemo(() => {
     const transitionInclusionOption = query.transitionInclusionOption;
@@ -219,6 +230,19 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
                 }}
               />
             </InlineField>
+            {isSeverityPropertySelected && (
+              <InlineField
+                label={labels.severityLevelFormat}
+                labelWidth={SECONDARY_LABEL_WIDTH}
+                tooltip={tooltips.severityLevelFormat}
+              >
+                <RadioButtonGroup
+                  options={SeverityLevelFormatOptions}
+                  value={query.severityLevelFormat}
+                  onChange={onSeverityLevelFormatChange}
+                />
+              </InlineField>
+            )}
           </Stack>
         )}
       </Stack>

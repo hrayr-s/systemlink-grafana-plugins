@@ -26,6 +26,7 @@ describe('AlarmsDataSource', () => {
       take: 1000,
       descending: true,
       transitionInclusionOption: 'NONE',
+      severityLevelFormat: 'Numeric value + text',
     });
   });
 
