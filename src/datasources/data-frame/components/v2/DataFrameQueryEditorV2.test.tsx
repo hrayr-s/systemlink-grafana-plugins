@@ -86,9 +86,7 @@ const renderComponent = (
         variablesCache,
         parseColumnIdentifier: mockParseColumnIdentifier,
         instanceSettings: {
-            jsonData: {
-                featureToggles: {}
-            }
+            jsonData: {}
         },
         ...mockDatasource
     } as unknown as DataFrameDataSource;
@@ -1179,9 +1177,7 @@ describe("DataFrameQueryEditorV2", () => {
                             hasRequiredFilters: mockHasRequiredFilters,
                             parseColumnIdentifier: mockParseColumnIdentifier,
                             instanceSettings: {
-                                jsonData: {
-                                    featureToggles: {}
-                                }
+                                jsonData: {}
                             }
                         } as any;
                     });
@@ -1572,7 +1568,7 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(screen.getByText("Decimation settings")).toBeInTheDocument();
                     expect(screen.getByText("Decimation method")).toBeInTheDocument();
                     expect(screen.getByText("X-column")).toBeInTheDocument();
-                    expect(screen.getByText("Use time range")).toBeInTheDocument();
+                    expect(screen.getByText("Filter by x-axis range on zoom or pan")).toBeInTheDocument();
                 });
             });
 
@@ -3702,9 +3698,7 @@ describe("DataFrameQueryEditorV2", () => {
                     getCustomPropertyOptions: mockGetCustomPropertyOptions,
                     parseColumnIdentifier: mockParseColumnIdentifier,
                     instanceSettings: {
-                        jsonData: {
-                            featureToggles: {}
-                        }
+                        jsonData: {}
                     }
                 } as any;
 
@@ -3776,9 +3770,7 @@ describe("DataFrameQueryEditorV2", () => {
                     getCustomPropertyOptions: mockGetCustomPropertyOptions,
                     parseColumnIdentifier: mockParseColumnIdentifier,
                     instanceSettings: {
-                        jsonData: {
-                            featureToggles: {}
-                        }
+                        jsonData: {}
                     }
                 } as any;
 
