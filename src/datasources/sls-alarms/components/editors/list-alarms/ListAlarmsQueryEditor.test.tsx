@@ -2,7 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryType, TransitionInclusionOption } from '../../../types/types';
 import { ListAlarmsQueryHandler } from '../../../query-type-handlers/list-alarms/ListAlarmsQueryHandler';
-import { AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from '../../../types/ListAlarms.types';
+import { AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType, SeverityLevelFormat } from '../../../types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './ListAlarmsQueryEditor';
 import userEvent from '@testing-library/user-event';
 import { AlarmsPropertiesOptions, takeErrorMessages, AlarmsTransitionInclusionOptions } from '../../../constants/AlarmsQueryEditor.constants';
@@ -561,6 +561,58 @@ describe('ListAlarmsQueryEditor', () => {
 
         expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('Severity format', () => {
+    it('should show severity format control when a severity property is selected', async () => {
+      const container = await renderElement({
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        properties: [AlarmsSpecificProperties.currentSeverityLevel],
+      });
+
+      expect(container.getByText('Severity format')).toBeInTheDocument();
+      expect(container.getByRole('radio', { name: 'Numeric value + text' })).toBeInTheDocument();
+      expect(container.getByRole('radio', { name: 'Numeric value' })).toBeInTheDocument();
+      expect(container.getByRole('radio', { name: 'Text' })).toBeInTheDocument();
+    });
+
+    it('should not show severity format control when no severity property is selected', async () => {
+      const container = await renderElement({
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        properties: [AlarmsSpecificProperties.displayName],
+      });
+
+      expect(container.queryByText('Severity format')).not.toBeInTheDocument();
+    });
+
+    it('should render the selected severity format value', async () => {
+      const container = await renderElement({
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        properties: [AlarmsSpecificProperties.highestSeverityLevel],
+        severityLevelFormat: SeverityLevelFormat.Text,
+      });
+
+      expect(container.getByRole('radio', { name: 'Text' })).toBeChecked();
+    });
+
+    it('should call handleQueryChange with selected severity format when it is updated', async () => {
+      const container = await renderElement({
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        properties: [AlarmsSpecificProperties.currentSeverityLevel],
+      });
+
+      await userEvent.click(container.getByRole('radio', { name: 'Numeric value' }));
+
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          severityLevelFormat: SeverityLevelFormat.Numeric,
+        })
+      );
     });
   });
 });

@@ -6,7 +6,7 @@ import { QUERY_ALARMS_RELATIVE_PATH } from '../../constants/QueryAlarms.constant
 import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { User } from 'shared/types/QueryUsers.types';
-import { alarmsCacheTTL, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from '../../types/ListAlarms.types';
+import { alarmsCacheTTL, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType, SeverityLevelFormat } from '../../types/ListAlarms.types';
 import { Workspace } from 'core/types';
 import { AlarmsPropertiesOptions, TRANSITION_SPECIFIC_PROPERTIES } from '../../constants/AlarmsQueryEditor.constants';
 
@@ -158,6 +158,7 @@ describe('ListAlarmsQueryHandler', () => {
       take: 1000,
       descending: true,
       transitionInclusionOption: 'NONE',
+      severityLevelFormat: 'Numeric value + text',
     });
   });
 
@@ -187,6 +188,22 @@ describe('ListAlarmsQueryHandler', () => {
       );
 
       jest.useRealTimers();
+    });
+
+    it('should pass source filter as properties in the API request', async () => {
+      const filterQuery = buildAlarmsQuery({
+        filter: 'source = "test-system"'
+      });
+
+      await datastore.runQuery(filterQuery, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            properties: { minionId: 'test-system' },
+          }),
+        })
+      );
     });
 
     describe('Properties Mapping', () => {
@@ -546,6 +563,78 @@ describe('ListAlarmsQueryHandler', () => {
                 'Critical (4)',
                 'Critical (5)',
               ],
+            },
+          ],
+        });
+      });
+
+      it('should map severity level properties as numeric values when severityLevelFormat is Numeric', async () => {
+        const query = buildAlarmsQuery({
+          properties: [AlarmsSpecificProperties.highestSeverityLevel, AlarmsSpecificProperties.currentSeverityLevel],
+          severityLevelFormat: SeverityLevelFormat.Numeric,
+        });
+        jest
+          .spyOn(datastore as any, 'queryAlarmsInBatches')
+          .mockResolvedValueOnce(
+            buildAlarmsResponse([
+              { highestSeverityLevel: -1, currentSeverityLevel: 100 },
+              { highestSeverityLevel: 4, currentSeverityLevel: -1 },
+              { highestSeverityLevel: 3, currentSeverityLevel: 0 },
+              { highestSeverityLevel: 1, currentSeverityLevel: 2 },
+            ])
+          );
+
+        const result = await datastore.runQuery(query, options);
+
+        expect(result).toEqual({
+          refId: 'A',
+          name: 'A',
+          fields: [
+            {
+              name: 'Highest severity',
+              type: 'number',
+              values: [-1, 4, 3, 1],
+            },
+            {
+              name: 'Current severity',
+              type: 'number',
+              values: [100, -1, 0, 2],
+            },
+          ],
+        });
+      });
+
+      it('should map severity level properties as text only when severityLevelFormat is Text', async () => {
+        const query = buildAlarmsQuery({
+          properties: [AlarmsSpecificProperties.highestSeverityLevel, AlarmsSpecificProperties.currentSeverityLevel],
+          severityLevelFormat: SeverityLevelFormat.Text,
+        });
+        jest
+          .spyOn(datastore as any, 'queryAlarmsInBatches')
+          .mockResolvedValueOnce(
+            buildAlarmsResponse([
+              { highestSeverityLevel: -1, currentSeverityLevel: 100 },
+              { highestSeverityLevel: 4, currentSeverityLevel: -1 },
+              { highestSeverityLevel: 3, currentSeverityLevel: 0 },
+              { highestSeverityLevel: 1, currentSeverityLevel: 2 },
+            ])
+          );
+
+        const result = await datastore.runQuery(query, options);
+
+        expect(result).toEqual({
+          refId: 'A',
+          name: 'A',
+          fields: [
+            {
+              name: 'Highest severity',
+              type: 'string',
+              values: ['Clear', 'Critical', 'High', 'Low'],
+            },
+            {
+              name: 'Current severity',
+              type: 'string',
+              values: ['Critical', 'Clear', '', 'Moderate'],
             },
           ],
         });
