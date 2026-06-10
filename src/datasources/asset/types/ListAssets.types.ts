@@ -42,6 +42,7 @@ export enum AssetFilterPropertiesOption {
     SelfCalibration = 'SelfCalibration.CalibrationDate',
     SupportsExternalCalibration = 'SupportsExternalCalibration',
     ExternalCalibrationDate = 'ExternalCalibration.ResolvedDuedate',
+    NextRecommendedDate = 'ExternalCalibration.NextRecommendedDate',
     IsSystemController = 'IsSystemController',
     Workspace = 'Workspace',
     CalibrationStatus = 'CalibrationStatus',
@@ -192,6 +193,11 @@ export const AssetFilterProperties: Record<AssetFilterPropertiesOption, {
         label: 'calibration due date',
         value: AssetFilterPropertiesOption.ExternalCalibrationDate,
         field: 'externalCalibration',
+    },
+    [AssetFilterPropertiesOption.NextRecommendedDate]: {
+        label: 'next recommended date',
+        value: AssetFilterPropertiesOption.NextRecommendedDate,
+        field: 'nextRecommendedCalibration',
     },
     [AssetFilterPropertiesOption.IsSystemController]: {
         label: 'is system controller',

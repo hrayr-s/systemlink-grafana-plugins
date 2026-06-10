@@ -204,6 +204,13 @@ exports[`shouldRunQuery should match snapshot for Properties outputType 1`] = `
     ],
   },
   {
+    "name": "next recommended date",
+    "type": "string",
+    "values": [
+      undefined,
+    ],
+  },
+  {
     "name": "is system controller",
     "type": "string",
     "values": [
@@ -431,6 +438,13 @@ exports[`shouldRunQuery should return expected data when take is 0 1`] = `
       ],
     },
     {
+      "name": "next recommended date",
+      "type": "string",
+      "values": [
+        undefined,
+      ],
+    },
+    {
       "name": "is system controller",
       "type": "string",
       "values": [
@@ -644,6 +658,13 @@ exports[`shouldRunQuery should return expected data when take is 1000 1`] = `
     },
     {
       "name": "calibration due date",
+      "type": "string",
+      "values": [
+        undefined,
+      ],
+    },
+    {
+      "name": "next recommended date",
       "type": "string",
       "values": [
         undefined,
@@ -869,6 +890,13 @@ exports[`shouldRunQuery should return expected data when take is 10000 1`] = `
       ],
     },
     {
+      "name": "next recommended date",
+      "type": "string",
+      "values": [
+        undefined,
+      ],
+    },
+    {
       "name": "is system controller",
       "type": "string",
       "values": [
@@ -1082,6 +1110,13 @@ exports[`shouldRunQuery should return single asset when identifier is provided 1
     },
     {
       "name": "calibration due date",
+      "type": "string",
+      "values": [
+        undefined,
+      ],
+    },
+    {
+      "name": "next recommended date",
       "type": "string",
       "values": [
         undefined,

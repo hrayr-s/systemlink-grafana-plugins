@@ -46,6 +46,7 @@ export interface AssetModel {
   calibrationStatus: 'OK' | 'APPROACHING_RECOMMENDED_DUE_DATE' | 'PAST_RECOMMENDED_DUE_DATE' | string,
   isSystemController: boolean,
   externalCalibration?: ExternalCalibrationModel,
+  nextRecommendedCalibration?: string,
   discoveryType: 'MANUAL' | 'AUTOMATIC' | string,
   properties: Record<string, string>,
   keywords: string[],

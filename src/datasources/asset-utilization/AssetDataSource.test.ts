@@ -17,6 +17,7 @@ import {
   EntityType,
 } from "./types";
 import { dateTime } from "@grafana/data";
+import { firstValueFrom } from "rxjs";
 import { assetUtilizationHistoryFactory } from "./utils";
 import { defaultProjection } from "./constants";
 
@@ -955,17 +956,23 @@ const buildUtilizationQuery = getQueryBuilder<AssetUtilizationQuery>()({
   workspace: '',
   assetIdentifiers: [],
   minionIds: [],
-}, {
-  range: {
-    from: dateTime(new Date('2023-12-10T00:00:00.000Z')),
-    to: dateTime(new Date('2023-12-24T00:00:00.000Z')),
-    raw: {
-      from: dateTime(new Date('2023-12-10T00:00:00.000Z')),
-      to: dateTime(new Date('2023-12-24T00:00:00.000Z'))
-    }
-  },
-  timezone: 'Asia/Yerevan'
 });
+
+const buildUtilizationQueryWithRange = (...targets: Array<Omit<AssetUtilizationQuery, 'refId'>> ) => {
+  const request = buildUtilizationQuery(...targets);
+  return {
+    ...request,
+    range: {
+      from: dateTime(new Date('2023-12-10T00:00:00.000Z')),
+      to: dateTime(new Date('2023-12-24T00:00:00.000Z')),
+      raw: {
+        from: dateTime(new Date('2023-12-10T00:00:00.000Z')),
+        to: dateTime(new Date('2023-12-24T00:00:00.000Z')),
+      },
+    },
+    timezone: 'Asia/Yerevan',
+  };
+};
 describe('testDatasource', () => {
   test('returns success', async () => {
     backendSrv.fetch
@@ -982,7 +989,7 @@ describe('testDatasource', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets?take=1' }))
       .mockReturnValue(createFetchError(400));
 
-    await expect(ds.testDatasource()).rejects.toHaveProperty('status', 400);
+    await expect(ds.testDatasource()).rejects.toThrow('status code: 400');
   });
 })
 
@@ -992,7 +999,7 @@ describe('query', () => {
       backendSrv.fetch
         .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
         .mockReturnValue(createFetchResponse(assetsResponseMock as AssetsResponse))
-      const result = await ds.query(buildMetadataQuery(assetMetadataQueryMock))
+      const result = await firstValueFrom(ds.query(buildMetadataQuery(assetMetadataQueryMock)))
 
       expect(result.data).toMatchSnapshot()
     })
@@ -1002,13 +1009,13 @@ describe('query', () => {
         .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
         .mockReturnValue(createFetchError(418))
 
-      await expect(ds.query(buildMetadataQuery(assetMetadataQueryMock))).rejects.toThrow()
+      await expect(firstValueFrom(ds.query(buildMetadataQuery(assetMetadataQueryMock)))).rejects.toThrow()
     })
 
   })
   describe('utilization GMT+4', () => {
     test('asset from 9 to 17 and weekday are peak', async () => {
-      const queryRequest = buildUtilizationQuery({
+      const queryRequest = buildUtilizationQueryWithRange({
         type: AssetQueryType.Utilization,
         entityType: EntityType.Asset,
         workspace: '',
@@ -1041,12 +1048,12 @@ describe('query', () => {
           }
         }))
         .mockReturnValue(createFetchResponse(queryAssetsResponseMock1))
-      const result = await ds.query(queryRequest)
+      const result = await firstValueFrom(ds.query(queryRequest))
 
       expect(result.data).toMatchSnapshot();
     })
     test('asset whole day and weekday are peak', async () => {
-      const queryRequest = buildUtilizationQuery({
+      const queryRequest = buildUtilizationQueryWithRange({
         type: AssetQueryType.Utilization,
         entityType: EntityType.Asset,
         workspace: '',
@@ -1079,12 +1086,12 @@ describe('query', () => {
           }
         }))
         .mockReturnValue(createFetchResponse(queryAssetsResponseMock2))
-      const result = await ds.query(queryRequest)
+      const result = await firstValueFrom(ds.query(queryRequest))
 
       expect(result.data).toMatchSnapshot();
     })
     test('asset not utilized', async () => {
-      const queryRequest = buildUtilizationQuery({
+      const queryRequest = buildUtilizationQueryWithRange({
         type: AssetQueryType.Utilization,
         entityType: EntityType.Asset,
         workspace: '',
@@ -1117,12 +1124,12 @@ describe('query', () => {
           }
         }))
         .mockReturnValue(createFetchResponse(queryAssetsResponseMock1))
-      const result = await ds.query(queryRequest)
+      const result = await firstValueFrom(ds.query(queryRequest))
 
       expect(result.data).toMatchSnapshot();
     })
     test('sys controller whole day and weekday are peak', async () => {
-      const queryRequest = buildUtilizationQuery({
+      const queryRequest = buildUtilizationQueryWithRange({
         type: AssetQueryType.Utilization,
         entityType: EntityType.System,
         workspace: '',
@@ -1156,7 +1163,7 @@ describe('query', () => {
           }
         }))
         .mockReturnValue(createFetchResponse(querySystemsResponseMock))
-      const result = await ds.query(queryRequest)
+      const result = await firstValueFrom(ds.query(queryRequest))
 
       expect(result.data).toMatchSnapshot();
     })

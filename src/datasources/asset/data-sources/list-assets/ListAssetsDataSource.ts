@@ -88,6 +88,8 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
                 return asset.selfCalibration?.date ?? '';
               case AssetFilterPropertiesOption.ExternalCalibrationDate:
                 return asset.externalCalibration?.resolvedDueDate;
+              case AssetFilterPropertiesOption.NextRecommendedDate:
+                return asset.externalCalibration?.nextRecommendedDate;
               case AssetFilterPropertiesOption.Keywords:
                 return asset.keywords.join(', ');
               default:

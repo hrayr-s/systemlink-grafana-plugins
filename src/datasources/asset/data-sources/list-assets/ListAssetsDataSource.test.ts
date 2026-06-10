@@ -810,6 +810,45 @@ describe('shouldRunQuery', () => {
         expect(data.fields[0].values).toEqual(['2018-10-07T13:09:49.000Z']);
     });
 
+    test('should display nextRecommendedDate property', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.NextRecommendedDate],
+        });
+        const listAssetsResponse = {
+            assets: [
+                {
+                    externalCalibration: {
+                        temperatureSensors: [
+                            {
+                                name: '',
+                                reading: 35.5480842590332,
+                            },
+                        ],
+                        isLimited: false,
+                        date: '2016-10-07T13:09:49.000Z',
+                        recommendedInterval: 24,
+                        nextRecommendedDate: '2019-10-07T13:09:49.000Z',
+                        resolvedDueDate: '2018-10-07T13:09:49.000Z',
+                        comments: '',
+                        entryType: 'AUTOMATIC',
+                    },
+                },
+            ], totalCount: 1,
+        };
+        jest.spyOn(datastore, 'queryAssets$').mockImplementation(() => of(listAssetsResponse as unknown as AssetsResponse));
+
+        const response = await firstValueFrom(datastore.query(query));
+        const data = response.data[0];
+
+        expect(data.fields).toHaveLength(1);
+        expect(data.fields[0].name).toEqual('next recommended date');
+        expect(data.fields[0].values).toEqual(['2019-10-07T13:09:49.000Z']);
+    });
+
     test('should display keywords property', async () => {
         const query = buildListAssetsQuery({
             refId: '',
@@ -906,6 +945,7 @@ describe('shouldRunQuery', () => {
             AssetFilterPropertiesOption.SelfCalibration,
             AssetFilterPropertiesOption.SupportsExternalCalibration,
             AssetFilterPropertiesOption.ExternalCalibrationDate,
+            AssetFilterPropertiesOption.NextRecommendedDate,
             AssetFilterPropertiesOption.IsSystemController,
             AssetFilterPropertiesOption.Workspace,
             AssetFilterPropertiesOption.CalibrationStatus,
@@ -943,11 +983,12 @@ describe('shouldRunQuery', () => {
         expect(data.fields[23].name).toEqual('self calibration');
         expect(data.fields[24].name).toEqual('supports external calibration');
         expect(data.fields[25].name).toEqual('calibration due date');
-        expect(data.fields[26].name).toEqual('is system controller');
-        expect(data.fields[27].name).toEqual('workspace');
-        expect(data.fields[28].name).toEqual('calibration status');
-        expect(data.fields[29].name).toEqual('scan code');
-        expect(data.fields.length).toBe(expectedNumberOfFields)
+        expect(data.fields[26].name).toEqual('next recommended date');
+        expect(data.fields[27].name).toEqual('is system controller');
+        expect(data.fields[28].name).toEqual('workspace');
+        expect(data.fields[29].name).toEqual('calibration status');
+        expect(data.fields[30].name).toEqual('scan code');
+        expect(data.fields.length).toBe(expectedNumberOfFields);
     })
 });
 
